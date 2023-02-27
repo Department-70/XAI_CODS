@@ -11,6 +11,9 @@ Camouflaged Object Detection and Segmentation with Explainable AI
   Utilizing the SEDA[^2] architecture, Fing and Acquire Camouflage Explainability Phase 1 (FACE-P1) focuses on explaining the predictions of CODS.
  ![FACE-P1_Overview](image.png)
 
+The input image is of size HxW.
+The Attention module outputs a COR map (ranking map) which is a matrix of size HxW with a numeric value assigned to each matrix cell (aka pixel).
+
 
 ### References:
 [^1]Deng-Ping Fan, Ge-Peng Ji, Guolei Sun, Ming-Ming Cheng, Jianbing Shen, Ling Shao. Concealed Object Detection. TPAMI, 2022.
