@@ -7,6 +7,7 @@ Camouflaged Object Detection and Segmentation (COD/S) with Explainable AI
   ![Data-Attributes_Plot](dataset_attributes_plot.png)
   
  
+ 
 ### FACE-P1 High-Level Overview:
   Utilizing the SEDA[^2] architecture, Fing and Acquire Camouflage Explainability Phase 1 (FACE-P1) focuses on explaining the predictions of CODS.
   
@@ -41,8 +42,8 @@ Decision Hierarchy Decisions and Messages:
 
 ![Decision_Hierarchy_Decisions_and_Messages](Decision_Hierarchy_Decisions_and_Messages.png)
 
+*Layer 3 is highlighted. Stretch goal if object identification from feature maps for shadow, limb, eye, and mouth is doable.
 
-The Explanation Generator module...
 
 
 ### References:
