@@ -12,7 +12,12 @@ Camouflaged Object Detection and Segmentation with Explainable AI
  ![FACE-P1_Overview](image.png)
 
 The input image is of size HxW.
+
+The Sequence Interpreter module outputs a COL map (localization map) for segmentation which is a matrix of size HxW with a numeric value of 0 or 1 assigned to each matrix cell (aka pixel).
+![COL_Table](COL_Table.png)
+
 The Attention module outputs a COR map (ranking map) which is a matrix of size HxW with a numeric value assigned to each matrix cell (aka pixel).
+![COR_Table](COR_Table.png)
 
 
 ### References:
