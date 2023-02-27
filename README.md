@@ -19,17 +19,23 @@ The Feature Extractor (ResNet50) is used to
 The Sequence Interpreter module outputs a COL map (localization map) for segmentation which is a matrix of size HxW with a numeric value of 0 or 1 assigned to each matrix cell (aka pixel).
 
 COL Table:
+
 ![COL_Table](COL_Table.png)
+
 
 The Attention module outputs a COR map (ranking map) which is a matrix of size HxW with a numeric value assigned to each matrix cell (aka pixel).
 
 COR Table:
+
 ![COR_Table](COR_Table.png)
+
 
 The Decision Generator module takes the COL and COR maps to create the final COD/S image segmentation output and creates some underlying reasoning behind the decision-making process.
 
 Decision Hierarchy Label Conditions for COD/S:
+
 ![Decision_Hierarchy_Label_Conditions](Decision_Hierarchy_Label_Conditions_for_CODS.png)
+
 
 The Explanation Generator module...
 
