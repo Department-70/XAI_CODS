@@ -3,7 +3,8 @@ Camouflaged Object Detection and Segmentation with Explainable AI
 
 ### Dataset: 
   COD10K-TR consisting of 6K images (3040 concealed objects & 2960 non-concealed objects)
-  Images are divied into 10 categories and 78 sub-classes:
+  Images are divied into 10 categories and 78 sub-classes.
+  ![Data-Attributes_Plot](dataset_attributes_plot.png)
   
   
   Citation:
