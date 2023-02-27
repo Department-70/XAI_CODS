@@ -37,6 +37,11 @@ Decision Hierarchy Label Conditions for COD/S:
 ![Decision_Hierarchy_Label_Conditions](Decision_Hierarchy_Label_Conditions_for_CODS.png)
 
 
+Decision Hierarchy Decisions and Messages:
+
+![Decision_Hierarchy_Decisions_and_Messages](Decision_Hierarchy_Decisions_and_Messages.png)
+
+
 The Explanation Generator module...
 
 
