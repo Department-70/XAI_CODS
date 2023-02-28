@@ -3,6 +3,7 @@ Camouflaged Object Detection and Segmentation (COD/S) with Explainable AI
 
 ### Dataset: 
   COD10K-TR[^1] consisting of 6K images (3040 concealed objects & 2960 non-concealed objects).
+  Additional ranking information for COD10K-TR obtained from the CAM-FR[^3] dataset.
   Images are divided into 6 categories (Aquatic, Atmobios, Terrestrial, Amphibian, Other, and Background) and 78 sub-classes.
   
   Concealed Data Attributes     |  Concealed vs Category
@@ -52,3 +53,5 @@ Decision Hierarchy Decisions and Messages:
 [^1]: Deng-Ping Fan, Ge-Peng Ji, Guolei Sun, Ming-Ming Cheng, Jianbing Shen, Ling Shao. Concealed Object Detection. TPAMI, 2022.
 
 [^2]: Alex Stringer, Brian Sun, Zackary Hoyt, Lacey Schley, Dean Hougen, and John K Antonio. Seda: A self-explaining decision architecture implemented using deep learning for on-board command and control. In 2021 IEEE/AIAA 40th Digital Avionics Systems Conference (DASC), pages 1–10. IEEE, 2021.
+
+[^3]: Yunqiu Lv, Jing Zhang, Yuchao Dai, Aixuan Li, Bowen Liu, Nick Barnes, and Deng-Ping Fan. Simultaneously localize, segment and rank the camouflaged objects. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 11591–11601, 2021.
