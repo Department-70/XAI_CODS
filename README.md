@@ -54,7 +54,7 @@ Decision Hierarchy Decisions and Messages:
 
 ![Decision_Hierarchy_Decisions_and_Messages](Decision_Hierarchy_Decisions_and_Messages.png)
 
-*Layer 3 is highlighted. Stretch goal if object identification from feature maps for shadow[^5], limb, eye, and mouth[^6] is doable.
+*Layer 3 is highlighted. Stretch goal if object identification from feature maps for shadow[^5], limb, eye, and mouth[^6] is doable. A separate module will be required to identify object parts and be trained[^7].
 
 
 
@@ -70,3 +70,5 @@ Decision Hierarchy Decisions and Messages:
 [^5]: Wang, Tianyu, et al. "Instance shadow detection." Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition. 2020.
 
 [^6]: Morabia, Keval, Jatin Arora, and Tara Vijaykumar. "Attention-based joint detection of object and semantic part." arXiv preprint arXiv:2007.02419 (2020).
+
+[^7]: He, Ju, et al. "Partimagenet: A large, high-quality dataset of parts." Computer Vision–ECCV 2022: 17th European Conference, Tel Aviv, Israel, October 23–27, 2022, Proceedings, Part VIII. Cham: Springer Nature Switzerland, 2022.
