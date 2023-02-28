@@ -18,7 +18,7 @@ Camouflaged Object Detection and Segmentation (COD/S) with Explainable AI
 
 The input image is of size CxHxW (Channel by Height by Width).
 
-The Feature Extractor (ResNet50) is used to extract the unique features of the image and place them into the feature map (see example[^4] below).
+The Feature Extractor ([ResNet50](https://datagen.tech/guides/computer-vision/resnet-50/)) is used to extract the unique features of the image and place them into the feature map (see example[^4] below).
 
 ![](Schematic-and-operations-of-a-ResNet-50-A-Feature-maps-obtained-at-different-layers.png)
 
