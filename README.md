@@ -54,7 +54,7 @@ Decision Hierarchy Decisions and Messages:
 
 ![Decision_Hierarchy_Decisions_and_Messages](Decision_Hierarchy_Decisions_and_Messages.png)
 
-*Layer 3 is highlighted. Stretch goal if object identification from feature maps for shadow, limb, eye, and mouth is doable.
+*Layer 3 is highlighted. Stretch goal if object identification from feature maps for shadow[^5], limb, eye, and mouth is doable.
 
 
 
@@ -66,3 +66,5 @@ Decision Hierarchy Decisions and Messages:
 [^3]: Yunqiu Lv, Jing Zhang, Yuchao Dai, Aixuan Li, Bowen Liu, Nick Barnes, and Deng-Ping Fan. Simultaneously localize, segment and rank the camouflaged objects. In Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition, pages 11591–11601, 2021.
 
 [^4]: Cullell-Dalmau, Marta, et al. "Convolutional neural network for skin lesion classification: understanding the fundamentals through hands-on learning." Frontiers in Medicine 8 (2021): 644327.
+
+[^5]: Wang, Tianyu, et al. "Instance shadow detection." Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition. 2020.
