@@ -5,7 +5,7 @@ Camouflaged Object Detection and Segmentation (COD/S) with Explainable AI
   COD10K-TR[^1] consisting of 6K images (3040 concealed objects & 2960 non-concealed objects).
   Images are divied into 10 categories and 78 sub-classes.
   
-  Data Attributes     |  Category vs Concealed 
+  Data Attributes     |  Concealed vs Category
   :------------------:|:---------------------------------:
   ![Data-Attributes_Plot](dataset_attributes_plot.png) |  ![Category_vs_Concealed_heatmap](Category_vs_Concealed_heatmap.png)
  
