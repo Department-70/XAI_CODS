@@ -22,9 +22,11 @@ The Feature Extractor (ResNet50) is used to extract the unique features of the i
 
 ![](Schematic-and-operations-of-a-ResNet-50-A-Feature-maps-obtained-at-different-layers.png)
 
-*(A) Feature maps obtained at different layers of a trained ResNet-50, from the input RGB image, to the 8-element probability vector predicting the image class. *
-*(B) Schematic illustration of representative layers of the network. *
-*(C) Effect of convolution, batch normalization, activation (Sigmoid), and max-pooling on 1 of the 64 features producaed by the first convolutional layer from the input image. *
+_(A) Feature maps obtained at different layers of a trained ResNet-50, from the input RGB image, to the 8-element probability vector predicting the image class._
+
+_(B) Schematic illustration of representative layers of the network._
+
+_(C) Effect of convolution, batch normalization, activation (Sigmoid), and max-pooling on 1 of the 64 features producaed by the first convolutional layer from the input image._
 
 
 The Sequence Interpreter module outputs a COL map (localization map) for segmentation which is a matrix of size HxW with a numeric value of 0 or 1 assigned to each matrix cell (aka pixel).
