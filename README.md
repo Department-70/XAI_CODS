@@ -54,7 +54,7 @@ Decision Hierarchy Decisions and Messages:
 
 ![Decision_Hierarchy_Decisions_and_Messages](Decision_Hierarchy_Decisions_and_Messages.png)
 
-*Layer 3 is highlighted. Stretch goal if object identification from feature maps for shadow[^5], limb, eye, and mouth is doable.
+*Layer 3 is highlighted. Stretch goal if object identification from feature maps for shadow[^5], limb, eye, and mouth[^6] is doable.
 
 
 
@@ -68,3 +68,5 @@ Decision Hierarchy Decisions and Messages:
 [^4]: Cullell-Dalmau, Marta, et al. "Convolutional neural network for skin lesion classification: understanding the fundamentals through hands-on learning." Frontiers in Medicine 8 (2021): 644327.
 
 [^5]: Wang, Tianyu, et al. "Instance shadow detection." Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition. 2020.
+
+[^6]: Morabia, Keval, Jatin Arora, and Tara Vijaykumar. "Attention-based joint detection of object and semantic part." arXiv preprint arXiv:2007.02419 (2020).
