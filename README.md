@@ -13,7 +13,7 @@ Camouflaged Object Detection and Segmentation (COD/S) with Explainable AI
   
  ![FACE-P1_Overview](image.png)
 
-The input image is of size HxW.
+The input image is of size CxHxW (Channel by Height by Width).
 
 The Feature Extractor (ResNet50) is used to 
 
