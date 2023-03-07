@@ -32,6 +32,7 @@ class Generator(tf.keras.Model):
         return self(**config)
 
     def call(self, x):
+    
         fix_pred, cod_pred1, cod_pred2 = self.sal_encoder(x)
         shape =tf.slice(tf.shape(x), [1],[2])
         fix_pred = tf.image.resize(fix_pred, size=shape, method=tf.image.ResizeMethod.BILINEAR)
@@ -49,9 +50,9 @@ class PAM_Module(layers.Layer):
         super(PAM_Module, self).__init__()
         self.channel_in = in_dim
 
-        self.query_conv = layers.Conv2D(in_channels=in_dim, out_channels=in_dim//8, kernel_size=1)
-        self.key_conv = layers.Conv2D(in_channels=in_dim, out_channels=in_dim//8, kernel_size=1)
-        self.value_conv = layers.Conv2D(in_channels=in_dim, out_channels=in_dim, kernel_size=1)
+        self.query_conv = layers.Conv2D(in_channels=in_dim, out_channels=in_dim//8, kernel_size=1, kernel_initializer="HeUniform")
+        self.key_conv = layers.Conv2D(in_channels=in_dim, out_channels=in_dim//8, kernel_size=1, kernel_initializer="HeUniform")
+        self.value_conv = layers.Conv2D(in_channels=in_dim, out_channels=in_dim, kernel_size=1, kernel_initializer="HeUniform")
         self.gamma = layers.Parameter(tf.zeros(1))
         self.softmax = layers.Softmax(dim=-1)
 
@@ -139,9 +140,9 @@ class CALayer(layers.Layer):
         
         # feature channel downscale and upscale --> channel weight
         self.conv_du = tf.keras.Sequential( layers=[
-                layers.Conv2D( channel // reduction, 1, padding="valid", use_bias=True),
+                layers.Conv2D( channel // reduction, 1, padding="valid", use_bias=True, kernel_initializer="HeUniform"),
                 layers.ReLU(),
-                layers.Conv2D( channel, 1, padding="valid", use_bias=True),
+                layers.Conv2D( channel, 1, padding="valid", use_bias=True, kernel_initializer="HeUniform"),
                 layers.Activation("sigmoid")]
         )
     def get_config(self):
@@ -186,7 +187,7 @@ class RCAB(layers.Layer):
         
         
     def default_conv(self, in_channels, out_channels, kernel_size, bias=True):
-        return layers.Conv2D(out_channels, kernel_size,padding="same", use_bias=bias)
+        return layers.Conv2D(out_channels, kernel_size,padding="same", use_bias=bias, kernel_initializer="HeUniform")
 
     def call(self, x):
         
@@ -207,7 +208,7 @@ class BasicConv2d(layers.Layer):
         self.conv_bn = tf.Sequential(
             layers.Conv2d(in_planes, out_planes,
                       kernel_size=kernel_size, stride=stride,
-                      padding=padding, dilation=dilation, bias=False),
+                      padding=padding, dilation=dilation, bias=False, kernel_initializer="HeUniform"),
             layers.BatchNorm2d(out_planes)
         )
     def get_config(self):
@@ -299,15 +300,10 @@ class Saliency_feat_decoder(layers.Layer):
         conv432 = self.conv432(conv432)
         conv432 = self.upsample2(conv432)
         
-        #print("1 %s"%(self.upsample4(conv4_feat)))
-        #print("2 %s"%(self.upsample2(conv43)))
-        #print("3 %s"%(conv432))
-        #print("4 %s"%(conv1_feat))
+
         conv4321 = tf.concat((self.upsample4(conv4_feat), self.upsample2(conv43), conv432, conv1_feat), 3)
-        #print("before racb")
-        #print(conv4321)
+
         conv4321 = self.racb_4321(conv4321)
-        #print("#################################################################")
         sal_pred = self.cls_layer(conv4321)
 
 
@@ -346,16 +342,13 @@ class Fix_feat_decoder(layers.Layer):
         return self(**config)
 
     def call(self, x1,x2,x3,x4):
-
         conv1_feat = self.conv1(x1)
         conv2_feat = self.conv2(x2)
         conv3_feat = self.conv3(x3)
         conv4_feat = self.conv4(x4)
         conv4321 = tf.concat((conv1_feat, self.upsample2(conv2_feat),self.upsample4(conv3_feat), self.upsample8(conv4_feat)),3)
         conv4321 = self.racb4(conv4321)
-        #print(conv4321)
         sal_pred = self.cls_layer(conv4321)
-        #print(sal_pred)
 
         return sal_pred
 
@@ -399,11 +392,11 @@ class Saliency_feat_encoder(layers.Layer):
         return self.upsample4(fix_pred),self.upsample4(init_pred),self.upsample4(ref_pred)
 
     def build(self, shape):
-        self.B1_res = ResNet50((shape[1],shape[2],shape[3]))
-        self.B2_res = LastLayers((int(shape[1]/8),int(shape[2]/8),512))
+        self.B1_res = ResNet50((None, None,shape[3]))
+        self.B2_res = LastLayers((None,None,512))
         
-        self.B1_res.build((shape[1],shape[2],shape[3]))
-        self.B2_res.build((int(shape[1]/8),int(shape[2]/8),512))
+        self.B1_res.build((None,None,shape[3]))
+        self.B2_res.build((None,None,512))
         
         res50 = models.ResNet50(weights="imagenet")
         resName=[]

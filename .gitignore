@@ -142,4 +142,6 @@ training/
 *.png
 data/
 
-results/
+FACE-P1/logs/*
+FACE-P1/models/*
+FACE-P1/dataset/*

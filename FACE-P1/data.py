@@ -116,9 +116,10 @@ def randomPeper(img):
         the performance will be further improved.
 """
 class SalObjDataset(tf.keras.utils.Sequence):
-    def __init__(self, image_root, gt_root, fix_root, trainsize, batch_size):
+    def __init__(self, image_root, gt_root, fix_root, trainsize, batch_size, size_rates):
         self.trainsize = trainsize
         self.batch_size= batch_size
+        self.size_rates = size_rates
         self.images = [image_root + f for f in os.listdir(image_root) if f.endswith('.jpg')]
         self.gts = [gt_root + f for f in os.listdir(gt_root) if f.endswith('.jpg')
                     or f.endswith('.png')]
@@ -127,10 +128,9 @@ class SalObjDataset(tf.keras.utils.Sequence):
         self.gts = sorted(self.gts)
         self.fixs = sorted(self.fixs)
         self.filter_files()
-        self.size = math.ceil(len(self.images)/self.batch_size)
-       
-    def __len__(self):
-        return sefl.size
+        self.sub_size = math.ceil(len(self.images)/self.batch_size) 
+        self.size = self.sub_size * len(size_rates)
+   
     
     def __getitem__(self, idx):
         # print("Lenghts is %s"%(self.__len__()))
@@ -138,11 +138,18 @@ class SalObjDataset(tf.keras.utils.Sequence):
         batch_x = []
         batch_y = []
         batch_z = []
-        for i in range(idx * self.batch_size, (idx + 1) *self.batch_size):
+        index = idx % self.sub_size
+        rate_index = int(idx / self.sub_size)
+        for i in range(index * self.batch_size, (index + 1) *self.batch_size):
             x, y, z=self.get_pic(i)
             #item is (x, (y,z)) where:
                 #x is the input image
                 #y is the target output images
+            trainsize = int(round(self.trainsize * self.size_rates[rate_index] / 32) * 32)
+            if self.size_rates[rate_index] != 1:
+                x = tf.image.resize(x, size=[trainsize, trainsize])
+                y = tf.image.resize(y, size=[trainsize, trainsize])
+                z = tf.image.resize(z, size=[trainsize, trainsize])
             batch_x.append(x)
             batch_y.append(y)
             batch_z.append(z)
@@ -153,7 +160,6 @@ class SalObjDataset(tf.keras.utils.Sequence):
     def __iter__(self):
         """Create a generator that iterate over the Sequence."""
         for item in (self[i] for i in range(len(self))):
-            print("WE ARE ITERATOR GETTING %s"%(i))
             yield item
 
     def get_pic(self, index):
@@ -230,9 +236,9 @@ class SalObjDataset(tf.keras.utils.Sequence):
         return self.size
 
 
-def get_loader(image_root, gt_root, fix_root, trainsize,batchsize):
+def get_loader(image_root, gt_root, fix_root, trainsize,batchsize, size_rates):
 
-    dataset = SalObjDataset(image_root, gt_root, fix_root, trainsize,batchsize)
+    dataset = SalObjDataset(image_root, gt_root, fix_root, trainsize,batchsize,size_rates)
 
    
     return dataset

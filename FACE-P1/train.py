@@ -146,8 +146,13 @@ def loss_function(y_true,y_pred):
     print(cod_loss2)
     return  fix_loss + cod_loss1 + cod_loss2
     
-        
-        
+    
+def on_epoch_end( epoch, lr):
+    decay = decay_rate ** (epoch // decay_epoch)
+    new_lr = lr * decay
+    print("\nEpoch: {}. Reducing Learning Rate from {} to {}".format(epoch, lr, new_lr))
+    return new_lr
+          
         
 if __name__ == '__main__':
     
@@ -163,10 +168,10 @@ if __name__ == '__main__':
     
     generator.compile(optimizer=op, loss=loss_function);
     
-    data = get_loader(image_root, gt_root, fix_root, opt.trainsize,opt.batchsize)
+    data = get_loader(image_root, gt_root, fix_root, opt.trainsize,opt.batchsize, size_rates)
     
   
-    generator.fit(x=data,batch_size=opt.batchsize, epochs=opt.epoch, verbose='auto' , callbacks=[tensorboard_callback])
+    generator.fit(x=data,batch_size=opt.batchsize, epochs=opt.epoch, verbose='auto' , callbacks=[tensorboard_callback,  tf.keras.callbacks.LearningRateScheduler(on_epoch_end)])
      
     save_path = 'models/Resnet/'
     
