@@ -56,8 +56,12 @@ class HA(layers.Layer):
         self.gaussian_kernel = tf.convert_to_tensor(gaussian_kernel)
 
     def call(self, attention, x):
+        attention = tf.cast(attention, tf.float32)
         padded = tf.pad(attention,tf.constant([[0,0],[15,15],[15,15],[0,0]]))
+
+        x = tf.cast(x,tf.float32)
         soft_attention = tf.nn.conv2d(input=padded, filters=self.gaussian_kernel,strides=1,padding='VALID', data_format='NHWC')
         soft_attention = min_max_norm(soft_attention)
         x = tf.math.multiply(x, tf.math.maximum(soft_attention, attention))
+        
         return x

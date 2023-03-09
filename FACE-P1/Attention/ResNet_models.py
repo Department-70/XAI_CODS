@@ -290,18 +290,18 @@ class Saliency_feat_decoder(layers.Layer):
         conv4_feat = self.conv4(x4)
         conv4_feat = self.upsample2(conv4_feat)
 
-        conv43 = tf.concat((conv4_feat, conv3_feat),3)
+        conv43 = layers.concatenate((conv4_feat, conv3_feat),3)
         conv43 = self.racb_43(conv43)
         conv43 = self.conv43(conv43)
 
         conv43 = self.upsample2(conv43)
-        conv432 = tf.concat((self.upsample2(conv4_feat), conv43, conv2_feat), 3)
+        conv432 = layers.concatenate((self.upsample2(conv4_feat), conv43, conv2_feat), 3)
         conv432 = self.racb_432(conv432)
         conv432 = self.conv432(conv432)
         conv432 = self.upsample2(conv432)
         
 
-        conv4321 = tf.concat((self.upsample4(conv4_feat), self.upsample2(conv43), conv432, conv1_feat), 3)
+        conv4321 = layers.concatenate((self.upsample4(conv4_feat), self.upsample2(conv43), conv432, conv1_feat), 3)
 
         conv4321 = self.racb_4321(conv4321)
         sal_pred = self.cls_layer(conv4321)
@@ -346,7 +346,7 @@ class Fix_feat_decoder(layers.Layer):
         conv2_feat = self.conv2(x2)
         conv3_feat = self.conv3(x3)
         conv4_feat = self.conv4(x4)
-        conv4321 = tf.concat((conv1_feat, self.upsample2(conv2_feat),self.upsample4(conv3_feat), self.upsample8(conv4_feat)),3)
+        conv4321 = layers.concatenate((conv1_feat, self.upsample2(conv2_feat),self.upsample4(conv3_feat), self.upsample8(conv4_feat)),3)
         conv4321 = self.racb4(conv4321)
         sal_pred = self.cls_layer(conv4321)
 

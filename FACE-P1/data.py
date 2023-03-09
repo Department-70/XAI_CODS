@@ -130,7 +130,6 @@ class SalObjDataset(tf.keras.utils.Sequence):
         self.filter_files()
         self.sub_size = math.ceil(len(self.images)/self.batch_size) 
         self.size = self.sub_size * len(size_rates)
-   
     
     def __getitem__(self, idx):
         # print("Lenghts is %s"%(self.__len__()))
@@ -141,18 +140,19 @@ class SalObjDataset(tf.keras.utils.Sequence):
         index = idx % self.sub_size
         rate_index = int(idx / self.sub_size)
         for i in range(index * self.batch_size, (index + 1) *self.batch_size):
-            x, y, z=self.get_pic(i)
-            #item is (x, (y,z)) where:
-                #x is the input image
-                #y is the target output images
-            trainsize = int(round(self.trainsize * self.size_rates[rate_index] / 32) * 32)
-            if self.size_rates[rate_index] != 1:
-                x = tf.image.resize(x, size=[trainsize, trainsize])
-                y = tf.image.resize(y, size=[trainsize, trainsize])
-                z = tf.image.resize(z, size=[trainsize, trainsize])
-            batch_x.append(x)
-            batch_y.append(y)
-            batch_z.append(z)
+            if (i <len(self.images)):
+                x, y, z=self.get_pic(i)
+                #item is (x, (y,z)) where:
+                    #x is the input image
+                    #y is the target output images
+                trainsize = int(round(self.trainsize * self.size_rates[rate_index] / 32) * 32)
+                if self.size_rates[rate_index] != 1:
+                    x = tf.image.resize(x, size=[trainsize, trainsize])
+                    y = tf.image.resize(y, size=[trainsize, trainsize])
+                    z = tf.image.resize(z, size=[trainsize, trainsize])
+                batch_x.append(x)
+                batch_y.append(y)
+                batch_z.append(z)
         y_res =  tf.stack([tf.convert_to_tensor(batch_y),tf.convert_to_tensor(batch_z)])
         return tf.convert_to_tensor(batch_x), y_res
     
