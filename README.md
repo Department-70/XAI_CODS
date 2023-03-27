@@ -12,7 +12,7 @@ Camouflaged Object Detection and Segmentation (COD/S) with Explainable AI
  
  
 ### FACE-P1 High-Level Overview:
-  Utilizing the SEDA[^2] architecture, Fing and Acquire Camouflage Explainability Phase 1 (FACE-P1) focuses on explaining the predictions of CODS.
+  Utilizing the SEDA[^2] architecture, Find and Acquire Camouflage Explainability Phase 1 (FACE-P1) focuses on explaining the predictions of CODS.
   
  ![FACE-P1_Overview](image.png)
 
