@@ -44,6 +44,9 @@ COR Table:
 
 
 The Decision Generator module takes the COL and COR maps to create the final COD/S image segmentation output and creates some underlying reasoning behind the decision-making process.
+  Lvl 1 - Binary mask (COL) evaluation  - Is anything present?
+  Lvl 2 - Ranking mask (COR) evaluation - Where is the weak camouflage located?
+  Lvl 3 - Object Part Identification of weak camouflage - What part of the object breaks the camouflage concealment?
 
 Decision Hierarchy Label Conditions for COD/S:
 
