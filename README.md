@@ -45,17 +45,17 @@ COR Table:
 
 The Decision Generator module takes the COL and COR maps to create the final COD/S image segmentation output and creates some underlying reasoning behind the decision-making process.
 
-Decision Hierarchy Label Conditions for COD/S:
-
-![Decision_Hierarchy_Label_Conditions](Decision_Hierarchy_Label_Conditions_for_CODS.png)
-
+  Lvl 1 - Binary mask (COL) evaluation  - Is anything present?
+  
+  Lvl 2 - Ranking mask (COR) evaluation - Where is the weak camouflage located?
+  
+  Lvl 3 - Object Part Identification of weak camouflage - What part of the object breaks the camouflage concealment?
 
 Decision Hierarchy Decisions and Messages:
 
-![Decision_Hierarchy_Decisions_and_Messages](Decision_Hierarchy_Decisions_and_Messages.png)
+![Decision_Hierarchy_Decisions_and_Messages](Decision_Hierarchy_Decisions_and_Messages_redux.png)
 
-*Layer 3 is highlighted. Stretch goal if object identification from feature maps for shadow[^5], limb, eye, and mouth[^6] is doable. A separate module will be required to identify object parts and be trained[^7].
-
+* grayed out for later implementation
 
 
 ### References:
