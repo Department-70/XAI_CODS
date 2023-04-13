@@ -2,7 +2,7 @@
 """
 Created on Fri Feb 17 13:11:12 2023
 
-@author: Debra Hogue
+@author: Debra Hogue, Timmy Sharp, and Joe Karch
 
 Modified RankNet by Lv et al. to use Tensorflow not Pytorch
 and added additional comments to explain methods
@@ -147,7 +147,7 @@ def loss_function(y_true,y_pred):
     return  fix_loss + cod_loss1 + cod_loss2
     
     
-def on_epoch_end( epoch, lr):
+def on_epoch_end(epoch, lr):
     decay = decay_rate ** (epoch // decay_epoch)
     new_lr = lr * decay
     print("\nEpoch: {}. Reducing Learning Rate from {} to {}".format(epoch, lr, new_lr))
@@ -155,12 +155,7 @@ def on_epoch_end( epoch, lr):
           
         
 if __name__ == '__main__':
-    
-  
-    
-    
-    
-    
+
     logdir="logs/fit/" + datetime.now().strftime("%Y%m%d-%H%M%S")
     tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=logdir)
     
@@ -168,24 +163,24 @@ if __name__ == '__main__':
     
     generator.compile(optimizer=op, loss=loss_function);
     
-    data = get_loader(image_root, gt_root, fix_root, opt.trainsize,opt.batchsize, size_rates)
+    data = get_loader(image_root, gt_root, fix_root, opt.trainsize, opt.batchsize, size_rates)
     
   
-    generator.fit(x=data,batch_size=opt.batchsize, epochs=opt.epoch, verbose='auto' , callbacks=[tensorboard_callback,  tf.keras.callbacks.LearningRateScheduler(on_epoch_end)])
+    generator.fit(x=data,
+                  batch_size=opt.batchsize, 
+                  epochs=opt.epoch, 
+                  verbose='auto', 
+                  callbacks=[tensorboard_callback,  
+                             tf.keras.callbacks.LearningRateScheduler(on_epoch_end)])
      
     save_path = 'models/Resnet/'
-    
-
 
     #if not os.path.exists(save_path):
      #   os.makedirs(save_path)
     
     #generator.save_weights(save_path+"model")
 
-
     dataset_path = './dataset/test/'
-
-
 
     test_datasets = ['Mine']
 
@@ -198,14 +193,14 @@ if __name__ == '__main__':
     test_loader = test_dataset(image_root, 480)
 
     for i in range(test_loader.size):
-    print(i)
-    image, HH, WW, name = test_loader.load_data()
-    ans = generator(image)
-    _,generator_pred, _  = tf.unstack(ans,num=3,axis=0)
-    res = generator_pred
-    res = tf.image.resize(res, size=tf.constant([WW,HH]), method=tf.image.ResizeMethod.BILINEAR)
-    res = tf.math.sigmoid(res).numpy().squeeze()
-    res = 255*(res - res.min()) / (res.max() - res.min() + 1e-8)
-    print(save_path+name)
-    cv2.imwrite(save_path+name, res)
-    print()
+        print(i)
+        image, HH, WW, name = test_loader.load_data()
+        ans = generator(image)
+        _,generator_pred, _  = tf.unstack(ans,num=3,axis=0)
+        res = generator_pred
+        res = tf.image.resize(res, size=tf.constant([WW,HH]), method=tf.image.ResizeMethod.BILINEAR)
+        res = tf.math.sigmoid(res).numpy().squeeze()
+        res = 255*(res - res.min()) / (res.max() - res.min() + 1e-8)
+        print(save_path+name)
+        cv2.imwrite(save_path+name, res)
+        print()
