@@ -48,11 +48,6 @@ The Decision Generator module takes the COL and COR maps to create the final COD
   Lvl 2 - Ranking mask (COR) evaluation - Where is the weak camouflage located?
   Lvl 3 - Object Part Identification of weak camouflage - What part of the object breaks the camouflage concealment?
 
-Decision Hierarchy Label Conditions for COD/S:
-
-![Decision_Hierarchy_Label_Conditions](Decision_Hierarchy_Label_Conditions_for_CODS.png)
-
-
 Decision Hierarchy Decisions and Messages:
 
 ![Decision_Hierarchy_Decisions_and_Messages](Decision_Hierarchy_Decisions_and_Messages.png)
