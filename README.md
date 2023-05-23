@@ -20,8 +20,6 @@ The input image is of size CxHxW (Channel by Height by Width).
 
 The Feature Extractor ([ResNet50](https://datagen.tech/guides/computer-vision/resnet-50/)) is used to extract the unique features of the image and place them into the feature map.
 
-![](Schematic-and-operations-of-a-ResNet-50-A-Feature-maps-obtained-at-different-layers.png)
-
 The Sequence Interpreter module outputs a COL map (localization map) for segmentation which is a matrix of size HxW with a numeric value of 0 or 1 assigned to each matrix cell (aka pixel).
 
 COL Table:
