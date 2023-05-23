@@ -18,16 +18,9 @@ Camouflaged Object Detection and Segmentation (COD/S) with Explainable AI
 
 The input image is of size CxHxW (Channel by Height by Width).
 
-The Feature Extractor ([ResNet50](https://datagen.tech/guides/computer-vision/resnet-50/)) is used to extract the unique features of the image and place them into the feature map (see example[^4] below).
+The Feature Extractor ([ResNet50](https://datagen.tech/guides/computer-vision/resnet-50/)) is used to extract the unique features of the image and place them into the feature map.
 
 ![](Schematic-and-operations-of-a-ResNet-50-A-Feature-maps-obtained-at-different-layers.png)
-
-_(A) Feature maps obtained at different layers of a trained ResNet-50, from the input RGB image, to the 8-element probability vector predicting the image class._
-
-_(B) Schematic illustration of representative layers of the network._
-
-_(C) Effect of [convolution](https://machinelearningmastery.com/convolutional-layers-for-deep-learning-neural-networks/), [batch normalization](https://machinelearningmastery.com/batch-normalization-for-training-of-deep-neural-networks/), activation ([Sigmoid](https://machinelearningmastery.com/a-gentle-introduction-to-sigmoid-function/#:~:text=Sigmoid%20As%20An%20Activation%20Function%20In%20Neural%20Networks,-The%20sigmoid%20function&text=A%20weighted%20sum%20of%20inputs,input%20to%20the%20next%20layer.&text=When%20the%20activation%20function%20for,be%20between%200%20and%201.)), and [max-pooling](https://deeplizard.com/learn/video/ZjM_XQa5s6s) on 1 of the 64 features produced by the first convolutional layer from the input image._
-
 
 The Sequence Interpreter module outputs a COL map (localization map) for segmentation which is a matrix of size HxW with a numeric value of 0 or 1 assigned to each matrix cell (aka pixel).
 
