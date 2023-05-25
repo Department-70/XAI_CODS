@@ -18,12 +18,20 @@ from PIL import Image
 import matplotlib.colors as color
 import matplotlib.pyplot as plt
 from skimage.measure import label, regionprops, find_contours
+import tensorflow as tf
+from matplotlib.patches import Rectangle
 
 """ folder locations for binary maps, ranking maps, and object parts json """
 # image_root = './dataset/COD10K_FixTR/Image/'
 # gt_root = './dataset/COD10K_FixTR/GT/'
 # fix_root = './dataset/COD10K_FixTR/Fix/'
 # obj_parts = './dataset/CORVIS-parts-dataset/'
+
+
+PATH_TO_SAVED_MODEL = "models/d7_f/saved_model"
+
+
+detect_fn = tf.saved_model.load(PATH_TO_SAVED_MODEL)
 
 image_root = './dataset/train/Imgs/'
 gt_root = './dataset/train/GT/'
@@ -210,16 +218,77 @@ def parse_mask(mask):
     mask = np.concatenate([mask, mask, mask], axis=-1)
     return mask
 
+"""
+===================================================================================================
+    Helper function
+        - Returns overlapping boxes 
+        box format [xmin, xmax, ymin, ymax]
+===================================================================================================
+"""
+def overlap(bbox1,bbox2):
+    def overlap1D(b1,b2):
+        return b1[1] >= b2[0] and b2[1] >= b1[0]
+    
+    return overlap1D(bbox1[:2],bbox2[:2]) and overlap1D(bbox1[2:],bbox2[2:])
+
+
+
+
 
 """
 ===================================================================================================
     Lvl 3 - What part of the object breaks the camouflage concealment?
 ===================================================================================================
 """
-def levelThree(fixation_map, message):
+def levelThree(original_image, bbox, message):
     # print("In level 3")
     # print ("TBD")
-    # print("")
+    y_size, x_size, channel = original_image.shape
+    
+    label_map = ["leg","mouth","shadow","tail","arm","eye"]
+    
+    # The input needs to be a tensor, convert it using `tf.convert_to_tensor`.
+    input_tensor = tf.convert_to_tensor(original_image)
+    # The model expects a batch of images, so add an axis with `tf.newaxis`.
+    input_tensor = input_tensor[tf.newaxis, ...]
+    detections = detect_fn(input_tensor)
+    
+    # detections['detection_boxes'],
+    # detections['detection_classes'],
+    # detections['detection_scores'],
+    
+    d_class = []
+    d_box = []
+    for i,s in enumerate(detections['detection_scores'].numpy()[0]):
+        if s > 0.3:
+            d_class.append(detections['detection_classes'].numpy()[0][i])
+            d_box.append(detections['detection_boxes'].numpy()[0][i])
+            
+    
+    fig, axis = plt.subplots(1, figsize=(12,6))
+    axis.imshow(original_image);
+    axis.set_title('Detected features' + str(len(d_box)))
+    
+    
+   
+            
+            
+    for i,b in enumerate(detections['detection_boxes'].numpy()[0]):
+        if  detections['detection_scores'].numpy()[0][i] > 0.3:
+            axis.add_patch(Rectangle((b[1]*x_size, b[0]*y_size),  (b[3]-b[1])*x_size,  (b[2]-b[0])*y_size, label="Test", fill=False, linewidth=2, color=(1,0,0)))
+            axis.text(b[1]*x_size, b[0]*y_size-10,label_map[int(detections['detection_classes'].numpy()[0][i])-1] + " " + str(detections['detection_scores'].numpy()[0][i]), fontweight=400, color=(1,0,0))
+            
+            
+    
+    
+
+    for box1 in bbox:
+        for count, box2 in enumerate(d_box):
+            if overlap([box1['x1'], box1['x2'], box1['y1'], box1['y2']], [box2[1]*x_size, box2[3]*x_size, box2[0]*y_size,  box2[2]*y_size]):
+                message += "Camo broke because " +str( label_map[int(d_class[count])-1]) + "\n"
+                print("fart")
+    
+        
         
     return message
 
@@ -304,7 +373,7 @@ def levelTwo(filename, original_image, all_fix_map, fixation_map, message):
     message += "Identified " + str(index-1) + " weak camouflaged area(s).  \n"
     
     # Weak camouflaged area annotated image
-    output = levelThree(cropped_images, message)
+    output = levelThree(original_image, data["weak_area_bbox"], message)
     
     return output
 
@@ -377,6 +446,7 @@ def xaiDecision(file, counter):
     segmented_image = segment_image(org_image, fix_image, color=(255, 0, 0))
     add_label(segmented_image, output, (15, 15))
     segmented_image.save('outputs/segmented_'+ file_name +'.jpg')
+    plt.show()
     
     return message
 
