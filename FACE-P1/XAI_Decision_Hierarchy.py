@@ -286,7 +286,7 @@ def levelThree(original_image, bbox, message):
         for count, box2 in enumerate(d_box):
             if overlap([box1['x1'], box1['x2'], box1['y1'], box1['y2']], [box2[1]*x_size, box2[3]*x_size, box2[0]*y_size,  box2[2]*y_size]):
                 message += "Camo broke because " +str( label_map[int(d_class[count])-1]) + "\n"
-                print("fart")
+               
     
         
         
