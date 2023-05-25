@@ -241,24 +241,21 @@ def overlap(bbox1,bbox2):
 ===================================================================================================
 """
 def levelThree(original_image, bbox, message):
-    # print("In level 3")
-    # print ("TBD")
+
     y_size, x_size, channel = original_image.shape
     
     label_map = ["leg","mouth","shadow","tail","arm","eye"]
     
     # The input needs to be a tensor, convert it using `tf.convert_to_tensor`.
     input_tensor = tf.convert_to_tensor(original_image)
+    
     # The model expects a batch of images, so add an axis with `tf.newaxis`.
     input_tensor = input_tensor[tf.newaxis, ...]
     detections = detect_fn(input_tensor)
-    
-    # detections['detection_boxes'],
-    # detections['detection_classes'],
-    # detections['detection_scores'],
-    
+        
     d_class = []
     d_box = []
+    
     for i,s in enumerate(detections['detection_scores'].numpy()[0]):
         if s > 0.3:
             d_class.append(detections['detection_classes'].numpy()[0][i])
@@ -268,27 +265,16 @@ def levelThree(original_image, bbox, message):
     fig, axis = plt.subplots(1, figsize=(12,6))
     axis.imshow(original_image);
     axis.set_title('Detected features' + str(len(d_box)))
-    
-    
-   
-            
-            
+                
     for i,b in enumerate(detections['detection_boxes'].numpy()[0]):
         if  detections['detection_scores'].numpy()[0][i] > 0.3:
             axis.add_patch(Rectangle((b[1]*x_size, b[0]*y_size),  (b[3]-b[1])*x_size,  (b[2]-b[0])*y_size, label="Test", fill=False, linewidth=2, color=(1,0,0)))
             axis.text(b[1]*x_size, b[0]*y_size-10,label_map[int(detections['detection_classes'].numpy()[0][i])-1] + " " + str(detections['detection_scores'].numpy()[0][i]), fontweight=400, color=(1,0,0))
             
-            
-    
-    
-
     for box1 in bbox:
         for count, box2 in enumerate(d_box):
             if overlap([box1['x1'], box1['x2'], box1['y1'], box1['y2']], [box2[1]*x_size, box2[3]*x_size, box2[0]*y_size,  box2[2]*y_size]):
-                message += "Camo broke because " +str( label_map[int(d_class[count])-1]) + "\n"
-               
-    
-        
+                message += "Object's " +str( label_map[int(d_class[count])-1]) + "\n"
         
     return message
 
@@ -501,4 +487,3 @@ if __name__ == "__main__":
         
         if counter == 3041:
             break
-    
