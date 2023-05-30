@@ -78,8 +78,8 @@ def add_label(image, label_text, label_position):
     # Define the font and font size
     font = ImageFont.truetype('arial.ttf', 20)
 
-    # Draw the label on the image
-    draw.text(label_position, label_text, fill=(255, 255, 255), font=font)
+     # Draw the label on the image
+    draw.text(label_position, label_text, fill='white', font=font, stroke_width=2, stroke_fill='black')
 
     # Save the image with the label
     image.save('labeled_image.jpg')
