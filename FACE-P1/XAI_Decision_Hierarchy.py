@@ -101,15 +101,18 @@ def add_label(image, label_text, label_position):
 def segment_image(original_image, mask_image, color=(255, 0, 0)):
     
     # Conver the mask to mode 1
-    mask_image = mask_image.convert('1')
-    
+    # mask_image = mask_image.convert('1')
+    mask_image=np.transpose(mask_image)
+    print(mask_image)
     # Check that the mask and image have the same size
-    if original_image.size != mask_image.size:
+    if original_image.size != mask_image.shape:
+        print(original_image.size)
+        print(mask_image.shape)
         raise ValueError('Image and mask must have the same size.')
         
     # Check that the mask has the correct mode
-    if mask_image.mode != '1':
-        raise ValueError('Mask must be a binary image.')
+    # if mask_image.mode != '1':
+    #     raise ValueError('Mask must be a binary image.')
         
     # Convert the mask to a numpy array
     mask_array = np.array(mask_image, dtype=bool)
@@ -138,7 +141,7 @@ def processFixationMap(fix_image):
     # Input data should range from 0-1
     
     # Colorize the fixation map
-    color_map = Image.fromarray(blGrRdBl(img_np, bytes=True))
+    color_map = Image.fromarray(blGrRdBl(fix_image, bytes=True))
     # color_map.show()
     
     return color_map
@@ -155,7 +158,7 @@ def findAreasOfWeakCamouflage(fix_image):
     # Input data should range from 0-1
     
     # Colorize the fixation map
-    color_map = Image.fromarray(RdBl(img_np, bytes=True))
+    color_map = Image.fromarray(RdBl(fix_image, bytes=True))
     #color_map.show()
     
     return color_map
@@ -573,32 +576,32 @@ if __name__ == "__main__":
         fix_image = tf.math.sigmoid(fix_image).numpy().squeeze()
         
         fix_image = (fix_image - fix_image.min()) / (fix_image.max() - fix_image.min() + 1e-8)
-
+  
         
         bm_image= tf.image.resize(bm_image, size=tf.constant([WW,HH]), method=tf.image.ResizeMethod.BILINEAR)
         bm_image = tf.math.sigmoid(bm_image).numpy().squeeze()
-        bm_image = 255*(bm_image - bm_image.min()) / (bm_image.max() - bm_image.min() + 1e-8)
+        bm_image = (bm_image - bm_image.min()) / (bm_image.max() - bm_image.min() + 1e-8)
         
         bm_image2= tf.image.resize(bm_image2, size=tf.constant([WW,HH]), method=tf.image.ResizeMethod.BILINEAR)
         bm_image2 = tf.math.sigmoid(bm_image2).numpy().squeeze()
-        bm_image2 = 255*(bm_image2 - bm_image2.min()) / (bm_image2.max() - bm_image2.min() + 1e-8)
+        bm_image2 = (bm_image2 - bm_image2.min()) / (bm_image2.max() - bm_image2.min() + 1e-8)
        
-        fig = plt.figure(figsize=(10, 7))
+        # fig = plt.figure(figsize=(10, 7))
         
-        fig.add_subplot(1, 3, 1)
+        # fig.add_subplot(1, 3, 1)
        
-        plt.imshow(fix_image)
-        plt.axis('off')
-        plt.title("First")
-        fig.add_subplot(1, 3, 2)
-        plt.imshow(bm_image)
-        plt.axis('off')
-        plt.title("Second")
-        fig.add_subplot(1, 3, 3)
-        plt.imshow(bm_image2)
-        plt.axis('off')
-        plt.title("Third")
-        plt.show()
+        # plt.imshow(fix_image)
+        # plt.axis('off')
+        # plt.title("First")
+        # fig.add_subplot(1, 3, 2)
+        # plt.imshow(bm_image)
+        # plt.axis('off')
+        # plt.title("Second")
+        # fig.add_subplot(1, 3, 3)
+        # plt.imshow(bm_image2)
+        # plt.axis('off')
+        # plt.title("Third")
+        # plt.show()
         
         # if os.path.exists(fix_root + file_name + '.png'):
         #     fix_image = Image.open(fix_root + file_name + '.png')
@@ -609,7 +612,7 @@ if __name__ == "__main__":
         dim = original_image.shape
         
         # Normalize the Binary Mapping 
-        trans_img = np.transpose(bm_image)
+        trans_img = np.transpose(np.where(bm_image>0.5,1,0))
         img_np = np.asarray(trans_img)
         
         # Preprocess the Fixation Mapping
