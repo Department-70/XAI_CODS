@@ -442,6 +442,8 @@ def xaiDecision(file, counter):
     
     return message
 
+
+
 def xaiDecision_test(file_path,file, counter):
     
     # Filename
@@ -463,16 +465,50 @@ def xaiDecision_test(file_path,file, counter):
 
     image_root = file_path
     test_loader = test_dataset(image_root, 480)
-
+    fig = plt.figure(figsize=(10, 7))
     for i in range(test_loader.size):
         print(i)
         image, HH, WW, name = test_loader.load_data()
         ans = cods(image)
-        _,generator_pred, _  = tf.unstack(ans,num=3,axis=0)
+        img1,generator_pred, img2  = tf.unstack(ans,num=3,axis=0)
+
+
         res = generator_pred
         res = tf.image.resize(res, size=tf.constant([WW,HH]), method=tf.image.ResizeMethod.BILINEAR)
         res = tf.math.sigmoid(res).numpy().squeeze()
         res = 255*(res - res.min()) / (res.max() - res.min() + 1e-8)
+        
+        
+        res1 = img1
+        res1 = tf.image.resize(res1, size=tf.constant([WW,HH]), method=tf.image.ResizeMethod.BILINEAR)
+        res1 = tf.math.sigmoid(res1).numpy().squeeze()
+        res1 = 255*(res1 - res1.min()) / (res1.max() - res1.min() + 1e-8)
+        
+        res2 = img2
+        res2 = tf.image.resize(res2, size=tf.constant([WW,HH]), method=tf.image.ResizeMethod.BILINEAR)
+        res2 = tf.math.sigmoid(res2).numpy().squeeze()
+        res2 = 255*(res2 - res2.min()) / (res.max() - res2.min() + 1e-8)
+        
+        fig.add_subplot(1, 3, 1)
+        
+        plt.imshow(res1)
+        plt.axis('off')
+        plt.title("First")
+        fig.add_subplot(1, 3, 2)
+        plt.imshow(res)
+        plt.axis('off')
+        plt.title("Second")
+        fig.add_subplot(1, 3, 3)
+        plt.imshow(res2)
+        plt.axis('off')
+        plt.title("Third")
+        plt.show()
+        
+        
+        
+        
+        
+        
         print(save_path+name)
         cv2.imwrite(save_path+name, res)
         print()
