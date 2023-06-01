@@ -148,3 +148,12 @@ FACE-P1/dataset/*
 FACE-P1/results/*
 FACE-P1/outputs/*
 FACE-P1/jsons/*
+
+#Everything else I was messing with 
+80newModel
+bbox_figures
+dataset
+models
+outputs
+jsons
+figures

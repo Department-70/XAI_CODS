@@ -12,6 +12,7 @@ import numpy as np
 import os, argparse
 import cv2
 import XAI_Decision_Hierarchy as xai
+from data import test_dataset
 
 from Attention.ResNet_models import Generator
 from tensorflow.keras import losses
@@ -278,8 +279,33 @@ if __name__ == "__main__":
         Testing Model
     =============================
     """
-    
+    '''
+    #Wrote that in to path checking and model checking not really needed
+    test_datasets = ['Mine', 'CAMO']
+    dataset_path = '../dataset/test/'
+    CODS_model = './models/FACE-100/'
+    generator2 =  tf.keras.models.load_model(CODS_model, custom_objects={'loss_function': loss_function})
+    for dataset in test_datasets:
+        save_path = './results/small/' + dataset + '/'
+        if not os.path.exists(save_path):
+            os.makedirs(save_path)
 
+        image_root = dataset_path + dataset + '/Imgs/'
+        test_loader = test_dataset(image_root, 480)
+
+        for i in range(test_loader.size):
+            print(i)
+            image, HH, WW, name = test_loader.load_data()
+            ans = generator2(image)
+            _,generator_pred, _  = tf.unstack(ans,num=3,axis=0)
+            res = generator_pred
+            res = tf.image.resize(res, size=tf.constant([WW,HH]), method=tf.image.ResizeMethod.BILINEAR)
+            res = tf.math.sigmoid(res).numpy().squeeze()
+            res = 255*(res - res.min()) / (res.max() - res.min() + 1e-8)
+            print(save_path+name)
+            cv2.imwrite(save_path+name, res)
+            print()
+    '''
     
     """
     ===================================================================================================

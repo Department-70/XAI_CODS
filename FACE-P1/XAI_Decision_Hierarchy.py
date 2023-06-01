@@ -36,8 +36,8 @@ PATH_TO_SAVED_MODEL = "models/d7_f/saved_model"
 
 
 detect_fn = tf.saved_model.load(PATH_TO_SAVED_MODEL)
-
-cods = tf.saved_model.load('models\FACE-100')
+CODS_model = './models/FACE-100/'
+cods = tf.saved_model.load(CODS_model)
 
 image_root = './dataset/train/Imgs/'
 gt_root = './dataset/train/GT/'
