@@ -32,6 +32,7 @@ parser.add_argument('--trainsize', type=int, default=480, help='training dataset
 parser.add_argument('--decay_rate', type=float, default=0.9, help='decay rate of learning rate')
 parser.add_argument('--decay_epoch', type=int, default=40, help='every n epochs decay learning rate')
 parser.add_argument('--feat_channel', type=int, default=32, help='reduced channel of saliency feat')
+parser.add_argument('--test',type=str,default="./testing_data/default/",help="location of testing data")
 opt = parser.parse_args()
 print('Generator Learning Rate: {}'.format(opt.lr_gen))
 
@@ -306,6 +307,14 @@ if __name__ == "__main__":
             cv2.imwrite(save_path+name, res)
             print()
     '''
+        # Loop to iterate through dataset
+    testing_dir = opt.test
+    for files in os.scandir(testing_dir):
+        message = xai.xaiDecision_test(testing_dir,files, counter)   
+        counter += 1
+        
+        #if counter == 101:#3041:
+        #    break
     
     """
     ===================================================================================================

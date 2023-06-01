@@ -442,6 +442,71 @@ def xaiDecision(file, counter):
     
     return message
 
+def xaiDecision_test(file_path,file, counter):
+    
+    # Filename
+    file_name = os.path.splitext(file.name)[0]
+
+    # XAI Message
+    message = "Decision for " + file_name + ": \n"
+    
+    # Gather the images: Original, Binary Mapping, Fixation Mapping
+    print(file_path + file_name + '.jpg')
+    original_image = cv2.imread(file_path + file_name + '.jpg')
+    dim = original_image.shape
+    
+    save_path = file_path + "Fix" + '/'
+    print(save_path)
+    if not os.path.exists(save_path):
+        os.makedirs(save_path)
+
+    image_root = file_path
+    test_loader = test_dataset(image_root, 480)
+
+    for i in range(test_loader.size):
+        print(i)
+        image, HH, WW, name = test_loader.load_data()
+        ans = cods(image)
+        _,generator_pred, _  = tf.unstack(ans,num=3,axis=0)
+        res = generator_pred
+        res = tf.image.resize(res, size=tf.constant([WW,HH]), method=tf.image.ResizeMethod.BILINEAR)
+        res = tf.math.sigmoid(res).numpy().squeeze()
+        res = 255*(res - res.min()) / (res.max() - res.min() + 1e-8)
+        print(save_path+name)
+        cv2.imwrite(save_path+name, res)
+        print()
+    
+    
+    print("bm")
+    if os.path.exists(file_path + file_name + '.png'):
+        bm_image = Image.open(file_path + file_name + '.png')
+    else:
+        bm_image = np.zeros((dim[1], dim[0],3), np.uint8)
+    print("fix")
+    if os.path.exists(save_path + file_name + '.png'):
+        fix_image = Image.open(save_path + file_name + '.png')
+    else:
+        fix_image = np.zeros((dim[1], dim[0],3), np.uint8)
+    
+    print("normalize")
+    # Normalize the Binary Mapping
+    trans_img = np.transpose(bm_image)
+    img_np = np.asarray(trans_img)/255
+    
+    print("preprocess")
+    # Preprocess the Fixation Mapping
+    weak_fix_map = findAreasOfWeakCamouflage(fix_image)
+    all_fix_map = processFixationMap(fix_image)
+    
+    output = levelOne(file_name, img_np, all_fix_map, weak_fix_map, original_image, message)
+
+    org_image = Image.open(image_root + file_name + '.jpg')
+    segmented_image = segment_image(org_image, fix_image, color=(255, 0, 0))
+    add_label(segmented_image, output, (15, 15))
+    segmented_image.save(file_path+'results/'+ file_name +'.jpg')
+    plt.show()
+    
+    return message
 
 """
 ===================================================================================================
