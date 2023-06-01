@@ -461,16 +461,35 @@ if __name__ == "__main__":
         # XAI Message
         message = "Decision for " + file_name + ": \n"
         
-        # Gather the images: Original, Binary Mapping, Fixation Mapping
-        dim = original_image.shape
+
         
         ans = cods(original_image)
         fix_image, bm_image, _  = tf.unstack(ans,num=3,axis=0)
         
         
-        # Normalize the Binary Mapping
+        fix_image = tf.image.resize(fix_image, size=tf.constant([WW,HH]), method=tf.image.ResizeMethod.BILINEAR)
+        fix_image = tf.math.sigmoid(fix_image).numpy().squeeze()
+        fix_image = (fix_image - fix_image.min()) / (fix_image.max() - fix_image.min() + 1e-8)
+        fix_image = ((255*np.asarray(fix_image)).astype(int).astype(float))/255
+        
+        print(fix_image)
+        
+        bm_image= tf.image.resize(bm_image, size=tf.constant([WW,HH]), method=tf.image.ResizeMethod.BILINEAR)
+        bm_image = tf.math.sigmoid(bm_image).numpy().squeeze()
+        bm_image = (bm_image - bm_image.min()) / (bm_image.max() - bm_image.min() + 1e-8)
+       
+        
+       
+        
+ 
+        
+        # Gather the images: Original, Binary Mapping, Fixation Mapping
+        original_image = np.asarray(original_image)[0]
+        dim = original_image.shape
+        
+        # Normalize the Binary Mapping 
         trans_img = np.transpose(bm_image)
-        img_np = np.asarray(trans_img)/255
+        img_np = np.asarray(trans_img)
         
         # Preprocess the Fixation Mapping
         weak_fix_map = findAreasOfWeakCamouflage(fix_image)
