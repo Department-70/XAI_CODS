@@ -19,7 +19,11 @@ import matplotlib.colors as color
 import matplotlib.pyplot as plt
 from skimage.measure import label, regionprops, find_contours
 import tensorflow as tf
+from data import test_dataset
 from matplotlib.patches import Rectangle
+
+#Turning off gpu since loading 2 models takes too much VRAM
+os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 
 """ folder locations for binary maps, ranking maps, and object parts json """
 # image_root = './dataset/COD10K_FixTR/Image/'
@@ -32,6 +36,8 @@ PATH_TO_SAVED_MODEL = "models/d7_f/saved_model"
 
 
 detect_fn = tf.saved_model.load(PATH_TO_SAVED_MODEL)
+
+cods = tf.saved_model.load('models\FACE-100')
 
 image_root = './dataset/train/Imgs/'
 gt_root = './dataset/train/GT/'
@@ -445,28 +451,22 @@ def xaiDecision(file, counter):
 if __name__ == "__main__":
     # Counter
     counter = 1
-    
     # Loop to iterate through dataset
-    for files in os.scandir(image_root):
+    test_loader = test_dataset(image_root, 480)
+    for i in range(test_loader.size):
         # Filename
-        file_name = os.path.splitext(files.name)[0]
+        original_image, HH, WW, name = test_loader.load_data()
+        file_name = os.path.splitext(name)[0]
     
         # XAI Message
         message = "Decision for " + file_name + ": \n"
         
         # Gather the images: Original, Binary Mapping, Fixation Mapping
-        original_image = cv2.imread(image_root + file_name + '.jpg')
         dim = original_image.shape
         
-        if os.path.exists(gt_root + file_name + '.png'):
-            bm_image = Image.open(gt_root + file_name + '.png')
-        else:
-            bm_image = np.zeros((dim[1], dim[0],3), np.uint8)
+        ans = cods(original_image)
+        fix_image, bm_image, _  = tf.unstack(ans,num=3,axis=0)
         
-        if os.path.exists(fix_root + file_name + '.png'):
-            fix_image = Image.open(fix_root + file_name + '.png')
-        else:
-            fix_image = np.zeros((dim[1], dim[0],3), np.uint8)
         
         # Normalize the Binary Mapping
         trans_img = np.transpose(bm_image)

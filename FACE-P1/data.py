@@ -250,14 +250,11 @@ def get_loader(image_root, gt_root, fix_root, trainsize,batchsize, size_rates):
 class test_dataset:
     def __init__(self, image_root, testsize):
         self.testsize = testsize
-        print(image_root)
-        print(os.listdir(image_root))
         self.images = [image_root + f for f in os.listdir(image_root) if f.endswith('.jpg')]
         self.images = sorted(self.images)
         
         self.size = len(self.images)
         self.index = 0
-        print(self.size)
         
     def len(self):
         return self.size
