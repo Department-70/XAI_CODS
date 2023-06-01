@@ -136,7 +136,6 @@ def segment_image(original_image, mask_image, color=(255, 0, 0)):
 """
 def processFixationMap(fix_image):      
     # Input data should range from 0-1
-    img_np = np.asarray(fix_image)/255
     
     # Colorize the fixation map
     color_map = Image.fromarray(blGrRdBl(img_np, bytes=True))
@@ -154,7 +153,6 @@ def processFixationMap(fix_image):
 """
 def findAreasOfWeakCamouflage(fix_image):      
     # Input data should range from 0-1
-    img_np = np.asarray(fix_image)/255
     
     # Colorize the fixation map
     color_map = Image.fromarray(RdBl(img_np, bytes=True))
@@ -356,7 +354,8 @@ def levelTwo(filename, original_image, all_fix_map, fixation_map, message):
     fig, axis = plt.subplots(1,2, figsize=(12,6))
     axis[0].imshow(marked_image);
     axis[0].set_title('Identified Weak Camo')
-    axis[1].imshow(cropped_images[0])
+    if not (cropped_images[0].shape[0] ==0 or cropped_images[0].shape[1]==0):
+        axis[1].imshow(cropped_images[0])
     axis[1].set_title('Cropped Weak Camo Area')
     
     # Save plot to output folder for paper
@@ -482,12 +481,12 @@ def xaiDecision_test(file_path,file, counter):
         res1 = img1
         res1 = tf.image.resize(res1, size=tf.constant([WW,HH]), method=tf.image.ResizeMethod.BILINEAR)
         res1 = tf.math.sigmoid(res1).numpy().squeeze()
-        res1 = 255*(res1 - res1.min()) / (res1.max() - res1.min() + 1e-8)
+        res1 = (res1 - res1.min()) / (res1.max() - res1.min() + 1e-8)
         
         res2 = img2
         res2 = tf.image.resize(res2, size=tf.constant([WW,HH]), method=tf.image.ResizeMethod.BILINEAR)
         res2 = tf.math.sigmoid(res2).numpy().squeeze()
-        res2 = 255*(res2 - res2.min()) / (res.max() - res2.min() + 1e-8)
+        res2 = (res2 - res2.min()) / (res.max() - res2.min() + 1e-8)
         
         fig.add_subplot(1, 3, 1)
         
@@ -557,36 +556,56 @@ if __name__ == "__main__":
     test_loader = test_dataset(image_root, 480)
     for i in range(test_loader.size):
         # Filename
-        original_image, HH, WW, name = test_loader.load_data()
+        image, HH, WW, name = test_loader.load_data()
         file_name = os.path.splitext(name)[0]
     
         # XAI Message
         message = "Decision for " + file_name + ": \n"
         
+        print(file_name)
+        original_image = cv2.imread(image_root + file_name + '.jpg')
+        
+        ans = cods(image)
+        fix_image, bm_image, bm_image2  = tf.unstack(ans,num=3,axis=0)
 
-        
-        ans = cods(original_image)
-        fix_image, bm_image, _  = tf.unstack(ans,num=3,axis=0)
-        
         
         fix_image = tf.image.resize(fix_image, size=tf.constant([WW,HH]), method=tf.image.ResizeMethod.BILINEAR)
         fix_image = tf.math.sigmoid(fix_image).numpy().squeeze()
-        fix_image = (fix_image - fix_image.min()) / (fix_image.max() - fix_image.min() + 1e-8)
-        fix_image = ((255*np.asarray(fix_image)).astype(int).astype(float))/255
         
-        print(fix_image)
+        fix_image = (fix_image - fix_image.min()) / (fix_image.max() - fix_image.min() + 1e-8)
+
         
         bm_image= tf.image.resize(bm_image, size=tf.constant([WW,HH]), method=tf.image.ResizeMethod.BILINEAR)
         bm_image = tf.math.sigmoid(bm_image).numpy().squeeze()
-        bm_image = (bm_image - bm_image.min()) / (bm_image.max() - bm_image.min() + 1e-8)
-       
+        bm_image = 255*(bm_image - bm_image.min()) / (bm_image.max() - bm_image.min() + 1e-8)
         
+        bm_image2= tf.image.resize(bm_image2, size=tf.constant([WW,HH]), method=tf.image.ResizeMethod.BILINEAR)
+        bm_image2 = tf.math.sigmoid(bm_image2).numpy().squeeze()
+        bm_image2 = 255*(bm_image2 - bm_image2.min()) / (bm_image2.max() - bm_image2.min() + 1e-8)
        
+        fig = plt.figure(figsize=(10, 7))
         
- 
+        fig.add_subplot(1, 3, 1)
+       
+        plt.imshow(fix_image)
+        plt.axis('off')
+        plt.title("First")
+        fig.add_subplot(1, 3, 2)
+        plt.imshow(bm_image)
+        plt.axis('off')
+        plt.title("Second")
+        fig.add_subplot(1, 3, 3)
+        plt.imshow(bm_image2)
+        plt.axis('off')
+        plt.title("Third")
+        plt.show()
+        
+        # if os.path.exists(fix_root + file_name + '.png'):
+        #     fix_image = Image.open(fix_root + file_name + '.png')
+        # print(file_name)
+        # print(fix_image)
         
         # Gather the images: Original, Binary Mapping, Fixation Mapping
-        original_image = np.asarray(original_image)[0]
         dim = original_image.shape
         
         # Normalize the Binary Mapping 
