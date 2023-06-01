@@ -309,9 +309,10 @@ if __name__ == "__main__":
     '''
         # Loop to iterate through dataset
     testing_dir = opt.test
-    for files in os.scandir(testing_dir):
-        message = xai.xaiDecision_test(testing_dir,files, counter)   
-        counter += 1
+    for root, dirs, files in os.walk(testing_dir):
+        for f in files:
+            message = xai.xaiDecision_test(testing_dir,f, counter)   
+            counter += 1
         
         #if counter == 101:#3041:
         #    break

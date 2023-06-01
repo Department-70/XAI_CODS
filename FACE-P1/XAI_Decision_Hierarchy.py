@@ -445,7 +445,8 @@ def xaiDecision(file, counter):
 def xaiDecision_test(file_path,file, counter):
     
     # Filename
-    file_name = os.path.splitext(file.name)[0]
+    file_name = os.path.splitext(file)[0]
+    #os.path.splitext(file.name)[0]
 
     # XAI Message
     message = "Decision for " + file_name + ": \n"
