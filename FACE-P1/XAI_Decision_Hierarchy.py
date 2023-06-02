@@ -102,10 +102,8 @@ def segment_image(original_image, mask_image, color=(255, 0, 0)):
     
     # Conver the mask to mode 1
     # mask_image = mask_image.convert('1')
-    mask_image=np.transpose(mask_image)
-    print(mask_image)
     # Check that the mask and image have the same size
-    if original_image.size != mask_image.shape:
+    if original_image.size != np.transpose(mask_image).shape:
         print(original_image.size)
         print(mask_image.shape)
         raise ValueError('Image and mask must have the same size.')
@@ -122,6 +120,8 @@ def segment_image(original_image, mask_image, color=(255, 0, 0)):
     
     # Apply the segmentation to the image
     indices = np.nonzero(mask_array)
+    print(indices)
+    print(highlighted_image.shape)
     highlighted_image[indices] = color
     
     # Convert the numpy array back to a PIL Image
