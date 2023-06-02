@@ -166,7 +166,7 @@ class RCAB(layers.Layer):
 
     def __init__(
         self, n_feat, kernel_size=3, reduction=16,
-        bias=True, bn=False, act=layers.ReLU(True), res_scale=1):
+        bias=True, bn=False, act=layers.ReLU(), res_scale=1):
         super(RCAB, self).__init__()
         self.config = {"n_feat": n_feat, "kernel_size":kernel_size,"reduction":reduction, "bias": bias, "bn":bn, "act":  act , "res_scale":res_scale}
         
