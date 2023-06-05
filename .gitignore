@@ -148,6 +148,7 @@ FACE-P1/dataset/*
 FACE-P1/results/*
 FACE-P1/outputs/*
 FACE-P1/jsons/*
+FACE-P1/Resnet/*
 
 #Everything else I was messing with 
 80newModel
