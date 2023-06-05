@@ -35,9 +35,9 @@ class Generator(tf.keras.Model):
     
         fix_pred, cod_pred1, cod_pred2 = self.sal_encoder(x)
         shape =tf.slice(tf.shape(x), [1],[2])
-        fix_pred = tf.image.resize(fix_pred, size=shape, method=tf.image.ResizeMethod.BILINEAR)
-        cod_pred1 = tf.image.resize(cod_pred1, size=shape, method=tf.image.ResizeMethod.BILINEAR)
-        cod_pred2 = tf.image.resize(cod_pred2, size=shape, method=tf.image.ResizeMethod.BILINEAR)
+        fix_pred = tf.image.resize(fix_pred, size=shape, method=tf.image.ResizeMethod.BILINEAR, preserve_aspect_ratio=True)
+        cod_pred1 = tf.image.resize(cod_pred1, size=shape, method=tf.image.ResizeMethod.BILINEAR,preserve_aspect_ratio=True)
+        cod_pred2 = tf.image.resize(cod_pred2, size=shape, method=tf.image.ResizeMethod.BILINEAR,preserve_aspect_ratio=True)
         return tf.stack([fix_pred, cod_pred1, cod_pred2])
     
 
