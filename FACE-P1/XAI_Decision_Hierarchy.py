@@ -139,7 +139,7 @@ def segment_image(original_image, mask_image, color=(255, 0, 0)):
 """
 def processFixationMap(fix_image):      
     # Input data should range from 0-1
-    
+    img_np = np.asarray(fix_image)/255
     # Colorize the fixation map
     color_map = Image.fromarray(blGrRdBl(fix_image, bytes=True))
     # color_map.show()
@@ -156,7 +156,7 @@ def processFixationMap(fix_image):
 """
 def findAreasOfWeakCamouflage(fix_image):      
     # Input data should range from 0-1
-    
+    img_np = np.asarray(fix_image)/255
     # Colorize the fixation map
     color_map = Image.fromarray(RdBl(fix_image, bytes=True))
     #color_map.show()
@@ -355,7 +355,7 @@ def levelTwo(filename, original_image, all_fix_map, fixation_map, message):
         
     # Figure of original image and marked image
     fig, axis = plt.subplots(1,2, figsize=(12,6))
-    axis[0].imshow(marked_image);
+    axis[0].imshow(marked_image)
     axis[0].set_title('Identified Weak Camo')
     if not (cropped_images[0].shape[0] ==0 or cropped_images[0].shape[1]==0):
         axis[1].imshow(cropped_images[0])
@@ -446,24 +446,16 @@ def xaiDecision(file, counter):
 
 
 
-def xaiDecision_test(file_path,file, counter):
-    
-    # Filename
-    file_name = os.path.splitext(file)[0]
-    #os.path.splitext(file.name)[0]
-
-    # XAI Message
-    message = "Decision for " + file_name + ": \n"
-    
-    # Gather the images: Original, Binary Mapping, Fixation Mapping
-    print(file_path + file_name + '.jpg')
-    original_image = cv2.imread(file_path + file_name + '.jpg')
-    dim = original_image.shape
+def xaiDecision_test(file_path,counter):
     
     save_path = file_path + "Fix" + '/'
     print(save_path)
     if not os.path.exists(save_path):
         os.makedirs(save_path)
+    save_path_2 = file_path + "GT" + '/'
+    print(save_path_2)
+    if not os.path.exists(save_path_2):
+        os.makedirs(save_path_2)
 
     image_root = file_path
     test_loader = test_dataset(image_root, 480)
@@ -472,7 +464,7 @@ def xaiDecision_test(file_path,file, counter):
         print(i)
         image, HH, WW, name = test_loader.load_data()
         ans = cods(image)
-        img1,generator_pred, img2  = tf.unstack(ans,num=3,axis=0)
+        fix_image,generator_pred, img2  = tf.unstack(ans,num=3,axis=0)
 
 
         res = generator_pred
@@ -481,10 +473,10 @@ def xaiDecision_test(file_path,file, counter):
         res = 255*(res - res.min()) / (res.max() - res.min() + 1e-8)
         
         
-        res1 = img1
-        res1 = tf.image.resize(res1, size=tf.constant([WW,HH]), method=tf.image.ResizeMethod.BILINEAR)
-        res1 = tf.math.sigmoid(res1).numpy().squeeze()
-        res1 = (res1 - res1.min()) / (res1.max() - res1.min() + 1e-8)
+        fix_image = tf.image.resize(fix_image, size=tf.constant([WW,HH]), method=tf.image.ResizeMethod.BILINEAR)
+        fix_image = tf.math.sigmoid(fix_image).numpy().squeeze()
+        
+        fix_image = (fix_image - fix_image.min()) / (fix_image.max() - fix_image.min() + 1e-8)
         
         res2 = img2
         res2 = tf.image.resize(res2, size=tf.constant([WW,HH]), method=tf.image.ResizeMethod.BILINEAR)
@@ -493,7 +485,7 @@ def xaiDecision_test(file_path,file, counter):
         
         fig.add_subplot(1, 3, 1)
         
-        plt.imshow(res1)
+        plt.imshow(fix_image)
         plt.axis('off')
         plt.title("First")
         fig.add_subplot(1, 3, 2)
@@ -506,46 +498,65 @@ def xaiDecision_test(file_path,file, counter):
         plt.title("Third")
         plt.show()
         
-        
-        
-        
-        
-        
         print(save_path+name)
-        cv2.imwrite(save_path+name, res)
+        cv2.imwrite(save_path_2+name, res)
+        cv2.imwrite(save_path+name, fix_image)
         print()
-    
-    
-    print("bm")
-    if os.path.exists(file_path + file_name + '.png'):
-        bm_image = Image.open(file_path + file_name + '.png')
-    else:
-        bm_image = np.zeros((dim[1], dim[0],3), np.uint8)
-    print("fix")
-    if os.path.exists(save_path + file_name + '.png'):
-        fix_image = Image.open(save_path + file_name + '.png')
-    else:
-        fix_image = np.zeros((dim[1], dim[0],3), np.uint8)
-    
-    print("normalize")
-    # Normalize the Binary Mapping
-    trans_img = np.transpose(bm_image)
-    img_np = np.asarray(trans_img)/255
-    
-    print("preprocess")
-    # Preprocess the Fixation Mapping
-    weak_fix_map = findAreasOfWeakCamouflage(fix_image)
-    all_fix_map = processFixationMap(fix_image)
-    
-    output = levelOne(file_name, img_np, all_fix_map, weak_fix_map, original_image, message)
+    for files in os.listdir(file_path):
+        if os.path.isfile(os.path.join(file_path, files)):
+            # Filename
+            file_name = os.path.splitext(files)[0]
+            #os.path.splitext(file.name)[0]
 
-    org_image = Image.open(image_root + file_name + '.jpg')
-    segmented_image = segment_image(org_image, fix_image, color=(255, 0, 0))
-    add_label(segmented_image, output, (15, 15))
-    segmented_image.save(file_path+'results/'+ file_name +'.jpg')
-    plt.show()
-    
-    return message
+            # XAI Message
+            message = "Decision for " + file_name + ": \n"
+            
+            # Gather the images: Original, Binary Mapping, Fixation Mapping
+            print(file_path + file_name + '.jpg')
+            original_image = cv2.imread(file_path + file_name + '.jpg')
+            dim = original_image.shape
+            
+            
+            print("bm")
+            if os.path.exists(save_path_2 + file_name + '.png'):
+                bm_image = Image.open(save_path_2 + file_name + '.png')
+            else:
+                bm_image = np.zeros((dim[1], dim[0],3), np.uint8)
+            print("fix")
+            if os.path.exists(save_path + file_name + '.png'):
+                fix_image = Image.open(save_path + file_name + '.png')
+            else:
+                fix_image = np.zeros((dim[1], dim[0],3), np.uint8)
+            
+            print("normalize")
+            # Normalize the Binary Mapping
+            trans_img = np.transpose(bm_image)
+            img_np = np.asarray(trans_img)/255
+            
+            print("preprocess")
+            # Preprocess the Fixation Mapping
+            weak_fix_map = findAreasOfWeakCamouflage(fix_image)
+            all_fix_map = processFixationMap(fix_image)
+            
+            fig.add_subplot(1, 2, 1)
+            plt.imshow(weak_fix_map)
+            plt.axis('off')
+            plt.title("First")
+            fig.add_subplot(1, 2, 2)
+            plt.imshow(all_fix_map)
+            plt.axis('off')
+            plt.title("Second")
+            plt.show()
+            
+            output = levelOne(file_name, img_np, all_fix_map, weak_fix_map, original_image, message)
+
+            org_image = Image.open(image_root + file_name + '.jpg')
+            segmented_image = segment_image(org_image, fix_image, color=(255, 0, 0))
+            add_label(segmented_image, output, (15, 15))
+            segmented_image.save(file_path+'results/'+ file_name +'.jpg')
+            
+        
+            return message
 
 """
 ===================================================================================================

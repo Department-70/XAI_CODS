@@ -157,3 +157,5 @@ models
 outputs
 jsons
 figures
+FACE-P1/Onnx/*
+FACE-P1\Onnx\*

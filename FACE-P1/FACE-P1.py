@@ -11,9 +11,10 @@ import tensorflow as tf
 import numpy as np
 import os, argparse
 import cv2
-import XAI_Decision_Hierarchy as xai
+import XAI_Decision_Hierarchy_onxx as xai
+#import XAI_Decision_Hierarchy as xai
 from data import test_dataset
-
+import glob
 from Attention.ResNet_models import Generator
 from tensorflow.keras import losses
 
@@ -309,10 +310,15 @@ if __name__ == "__main__":
     '''
         # Loop to iterate through dataset
     testing_dir = opt.test
-    for root, dirs, files in os.walk(testing_dir):
-        for f in files:
-            message = xai.xaiDecision_test(testing_dir,f, counter)   
-            counter += 1
+    #root, dirs, files = os.walk(testing_dir)
+    #for f in files:
+    #    message = xai.xaiDecision_test(testing_dir,f, counter)   
+    #    counter += 1
+    
+  
+    message = xai.xaiDecision_test(testing_dir, counter)   
+    counter += 1
+        # skip directories
         
         #if counter == 101:#3041:
         #    break
