@@ -385,11 +385,12 @@ class Saliency_feat_encoder(layers.Layer):
 
         fix_pred = self.cod_dec(x1,x2,x3,x4)
         init_pred = self.sal_dec(x1,x2,x3,x4)
+        fix = tf.identity(fix_pred)
         x2_2 = self.HA(1-tf.math.sigmoid(self.upsample05(fix_pred)), x2)
         x3_2, x4_2 = self.B2_res(x2_2)
         ref_pred = self.sal_dec(x1,x2_2,x3_2,x4_2)
 
-        return self.upsample4(fix_pred),self.upsample4(init_pred),self.upsample4(ref_pred)
+        return self.upsample4(fix),self.upsample4(init_pred),self.upsample4(ref_pred)
 
     def build(self, shape):
         self.B1_res = ResNet50((None, None,shape[3]))
