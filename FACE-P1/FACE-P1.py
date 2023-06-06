@@ -317,7 +317,7 @@ if __name__ == "__main__":
     #    counter += 1
     
   
-    message = xai.xaiDecision_test(testing_dir, counter)   
+    xai.xaiDecision_test(testing_dir, counter)   
     counter += 1
         # skip directories
         

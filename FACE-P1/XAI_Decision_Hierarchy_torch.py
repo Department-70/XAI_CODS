@@ -123,7 +123,7 @@ def add_label(image, label_text, label_position):
 def segment_image(original_image, mask_image, color=(255, 0, 0)):
     
     # Conver the mask to mode 1
-    # mask_image = mask_image.convert('1')
+    mask_image = mask_image.convert('1')
     # Check that the mask and image have the same size
     if original_image.size != np.transpose(mask_image).shape:
         print(original_image.size)
@@ -131,8 +131,8 @@ def segment_image(original_image, mask_image, color=(255, 0, 0)):
         raise ValueError('Image and mask must have the same size.')
         
     # Check that the mask has the correct mode
-    # if mask_image.mode != '1':
-    #     raise ValueError('Mask must be a binary image.')
+    if mask_image.mode != '1':
+        raise ValueError('Mask must be a binary image.')
         
     # Convert the mask to a numpy array
     mask_array = np.array(mask_image, dtype=bool)
@@ -520,6 +520,7 @@ def xaiDecision_test(file_path,counter):
         cv2.imwrite(save_path+name, res2)
         print()
     for files in os.listdir(file_path):
+        print(files)
         if os.path.isfile(os.path.join(file_path, files)):
             # Filename
             file_name = os.path.splitext(files)[0]
@@ -573,7 +574,7 @@ def xaiDecision_test(file_path,counter):
             segmented_image.save(file_path+'results/'+ file_name +'.jpg')
             
         
-            return message
+            #return message
 
 """
 ===================================================================================================

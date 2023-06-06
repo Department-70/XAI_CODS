@@ -101,7 +101,7 @@ def add_label(image, label_text, label_position):
 def segment_image(original_image, mask_image, color=(255, 0, 0)):
     
     # Conver the mask to mode 1
-    # mask_image = mask_image.convert('1')
+    mask_image = mask_image.convert('1')
     # Check that the mask and image have the same size
     if original_image.size != np.transpose(mask_image).shape:
         print(original_image.size)
@@ -109,8 +109,8 @@ def segment_image(original_image, mask_image, color=(255, 0, 0)):
         raise ValueError('Image and mask must have the same size.')
         
     # Check that the mask has the correct mode
-    # if mask_image.mode != '1':
-    #     raise ValueError('Mask must be a binary image.')
+    if mask_image.mode != '1':
+         raise ValueError('Mask must be a binary image.')
         
     # Convert the mask to a numpy array
     mask_array = np.array(mask_image, dtype=bool)
@@ -499,10 +499,12 @@ def xaiDecision_test(file_path,counter):
         plt.show()
         
         print(save_path+name)
-        cv2.imwrite(save_path_2+name, res)
         cv2.imwrite(save_path+name, fix_image)
+        cv2.imwrite(save_path_2+name, res)
+        
         print()
     for files in os.listdir(file_path):
+        print(files)
         if os.path.isfile(os.path.join(file_path, files)):
             # Filename
             file_name = os.path.splitext(files)[0]
@@ -538,15 +540,7 @@ def xaiDecision_test(file_path,counter):
             weak_fix_map = findAreasOfWeakCamouflage(fix_image)
             all_fix_map = processFixationMap(fix_image)
             
-            fig.add_subplot(1, 2, 1)
-            plt.imshow(weak_fix_map)
-            plt.axis('off')
-            plt.title("First")
-            fig.add_subplot(1, 2, 2)
-            plt.imshow(all_fix_map)
-            plt.axis('off')
-            plt.title("Second")
-            plt.show()
+
             
             output = levelOne(file_name, img_np, all_fix_map, weak_fix_map, original_image, message)
 
