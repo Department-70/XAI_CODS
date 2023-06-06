@@ -29,14 +29,14 @@ import numpy as np
 import pdb, os, argparse
 
 from scipy import misc
-from Attention.ResNet_models import Generator
+from model.ResNet_models import Generator
 from data import test_dataset
 from PIL import ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 import cv2
 
 #Turning off gpu since loading 2 models takes too much VRAM
-os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 """ folder locations for binary maps, ranking maps, and object parts json """
 # image_root = './dataset/COD10K_FixTR/Image/'
@@ -46,14 +46,14 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "-1"
 cods = Generator(channel=32)
 cods.load_state_dict(torch.load('./models/Resnet/Model_50_gen.pth'))
 
-cods.cpu()
+cods.gpu()
 cods.eval()
 
 
 PATH_TO_SAVED_MODEL = "models/d7_f/saved_model"
 
 
-detect_fn = tf.saved_model.load(PATH_TO_SAVED_MODEL)
+detect_fn = tf.saved_model.load(PATH_TO_SAVED_MODEL).cpu()
 #CODS_model = './models/FACE-100/'
 #cods = tf.saved_model.load(CODS_model)
 
