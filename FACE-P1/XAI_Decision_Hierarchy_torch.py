@@ -30,7 +30,7 @@ import pdb, os, argparse
 
 from scipy import misc
 from model.ResNet_models import Generator
-from data import test_dataset
+from data_torch import test_dataset
 from PIL import ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 import cv2
@@ -46,14 +46,16 @@ os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 cods = Generator(channel=32)
 cods.load_state_dict(torch.load('./models/Resnet/Model_50_gen.pth'))
 
-cods.gpu()
+cods.cuda()
 cods.eval()
 
 
 PATH_TO_SAVED_MODEL = "models/d7_f/saved_model"
 
+detect_fn = []
+with tf.device('/CPU:0'):
 
-detect_fn = tf.saved_model.load(PATH_TO_SAVED_MODEL).cpu()
+    detect_fn = tf.saved_model.load(PATH_TO_SAVED_MODEL)
 #CODS_model = './models/FACE-100/'
 #cods = tf.saved_model.load(CODS_model)
 
@@ -161,7 +163,7 @@ def processFixationMap(fix_image):
     # Input data should range from 0-1
     img_np = np.asarray(fix_image)/255
     # Colorize the fixation map
-    color_map = Image.fromarray(blGrRdBl(fix_image, bytes=True))
+    color_map = Image.fromarray(blGrRdBl(img_np, bytes=True))
     # color_map.show()
     
     return color_map
@@ -178,7 +180,7 @@ def findAreasOfWeakCamouflage(fix_image):
     # Input data should range from 0-1
     img_np = np.asarray(fix_image)/255
     # Colorize the fixation map
-    color_map = Image.fromarray(RdBl(fix_image, bytes=True))
+    color_map = Image.fromarray(RdBl(img_np, bytes=True))
     #color_map.show()
     
     return color_map
@@ -476,6 +478,8 @@ def xaiDecision_test(file_path,counter):
     print(save_path_2)
     if not os.path.exists(save_path_2):
         os.makedirs(save_path_2)
+    if not os.path.exists(file_path+'results/'):
+        os.makedirs(file_path+'results/')
 
     image_root = file_path
     test_loader = test_dataset(image_root, 480)
@@ -483,23 +487,17 @@ def xaiDecision_test(file_path,counter):
     for i in range(test_loader.size):
         print(i)
         image, HH, WW, name = test_loader.load_data()
-        fix_image,generator_pred, img2 = cods.forward(image)
+        image = image.cuda()
+        fix_pred,cod_pred1,cod_pred2 = cods.forward(image)
 
-        res = generator_pred
-        res = tf.image.resize(res, size=tf.constant([WW,HH]), method=tf.image.ResizeMethod.BILINEAR)
-        res = tf.math.sigmoid(res).numpy().squeeze()
+        res = cod_pred2
+        res = F.upsample(res, size=[WW,HH], mode='bilinear', align_corners=False)
+        res = res.sigmoid().data.cpu().numpy().squeeze()
         res = 255*(res - res.min()) / (res.max() - res.min() + 1e-8)
-        
-        
-        fix_image = tf.image.resize(fix_image, size=tf.constant([WW,HH]), method=tf.image.ResizeMethod.BILINEAR)
-        fix_image = tf.math.sigmoid(fix_image).numpy().squeeze()
-        
-        fix_image = (fix_image - fix_image.min()) / (fix_image.max() - fix_image.min() + 1e-8)
-        
-        res2 = img2
-        res2 = tf.image.resize(res2, size=tf.constant([WW,HH]), method=tf.image.ResizeMethod.BILINEAR)
-        res2 = tf.math.sigmoid(res2).numpy().squeeze()
-        res2 = (res2 - res2.min()) / (res.max() - res2.min() + 1e-8)
+        res2 = fix_pred
+        res2 = F.upsample(res2, size=[WW,HH], mode='bilinear', align_corners=False)
+        res2 = res2.sigmoid().data.cpu().numpy().squeeze()
+        res2 = 255*(res2 - res2.min()) / (res2.max() - res2.min() + 1e-8)
         '''
         fig = plt.figure(figsize=(10, 7))
         fig.add_subplot(1, 3, 1)
@@ -519,7 +517,7 @@ def xaiDecision_test(file_path,counter):
         '''
         print(save_path+name)
         cv2.imwrite(save_path_2+name, res)
-        cv2.imwrite(save_path+name, fix_image)
+        cv2.imwrite(save_path+name, res2)
         print()
     for files in os.listdir(file_path):
         if os.path.isfile(os.path.join(file_path, files)):

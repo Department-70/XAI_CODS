@@ -13,7 +13,7 @@ import os, argparse
 import cv2
 import XAI_Decision_Hierarchy_torch as xai
 #import XAI_Decision_Hierarchy as xai
-from data import test_dataset
+from data_torch import test_dataset
 import glob
 from Attention.ResNet_models import Generator
 from tensorflow.keras import losses
