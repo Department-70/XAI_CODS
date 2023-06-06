@@ -35,9 +35,10 @@ class Generator(tf.keras.Model):
     
         fix_pred, cod_pred1, cod_pred2 = self.sal_encoder(x)
         shape =tf.slice(tf.shape(x), [1],[2])
-        fix_pred = tf.image.resize(fix_pred, size=shape, method=tf.image.ResizeMethod.BILINEAR, preserve_aspect_ratio=True)
-        cod_pred1 = tf.image.resize(cod_pred1, size=shape, method=tf.image.ResizeMethod.BILINEAR,preserve_aspect_ratio=True)
-        cod_pred2 = tf.image.resize(cod_pred2, size=shape, method=tf.image.ResizeMethod.BILINEAR,preserve_aspect_ratio=True)
+
+        fix_pred = tf.image.resize(fix_pred, size=shape)
+        cod_pred1 = tf.image.resize(cod_pred1, size=shape)
+        cod_pred2 = tf.image.resize(cod_pred2, size=shape)
         return tf.stack([fix_pred, cod_pred1, cod_pred2])
     
 
@@ -251,10 +252,10 @@ class Saliency_feat_decoder(layers.Layer):
         super(Saliency_feat_decoder, self).__init__()
         self.config={"channel":channel}
         self.relu = layers.ReLU()
-        self.upsample8 = layers.UpSampling2D(size=(8,8), interpolation='bilinear')
-        self.upsample4 = layers.UpSampling2D(size=(4,4), interpolation='bilinear')
-        self.upsample2 = layers.UpSampling2D(size=(2,2), interpolation='bilinear')
-        self.upsample05 = layers.UpSampling2D(size=(0.5,0.5), interpolation='bilinear')
+        self.upsample8 = layers.UpSampling2D(size=(8,8))
+        self.upsample4 = layers.UpSampling2D(size=(4,4))
+        self.upsample2 = layers.UpSampling2D(size=(2,2))
+        self.upsample05 = layers.UpSampling2D(size=(0.5,0.5))
         self.dropout = layers.Dropout(0.3)
         self.layer6 = self._make_pred_layer(Classifier_Module, [6, 12, 18, 24], [6, 12, 18, 24], 1, channel*4)
         self.conv4 = self._make_pred_layer(Classifier_Module, [3, 6, 12, 18], [3, 6, 12, 18], channel, 2048)
@@ -318,10 +319,10 @@ class Fix_feat_decoder(layers.Layer):
         super(Fix_feat_decoder, self).__init__()
         self.config={"channel":channel}
         self.relu = layers.ReLU()
-        self.upsample8 = layers.UpSampling2D(size=(8,8), interpolation='bilinear')
-        self.upsample4 = layers.UpSampling2D(size=(4,4), interpolation='bilinear')
-        self.upsample2 = layers.UpSampling2D(size=(2,2), interpolation='bilinear')
-        self.upsample05 = layers.UpSampling2D(size=(0.5,0.5), interpolation='bilinear')
+        self.upsample8 = layers.UpSampling2D(size=(8,8))
+        self.upsample4 = layers.UpSampling2D(size=(4,4))
+        self.upsample2 = layers.UpSampling2D(size=(2,2))
+        self.upsample05 = layers.UpSampling2D(size=(0.5,0.5))
         self.dropout = layers.Dropout(0.3)
         self.conv4 = self._make_pred_layer(Classifier_Module, [3, 6, 12, 18], [3, 6, 12, 18], channel, 2048)
         self.conv3 = self._make_pred_layer(Classifier_Module, [3, 6, 12, 18], [3, 6, 12, 18], channel, 1024)
@@ -363,9 +364,9 @@ class Saliency_feat_encoder(layers.Layer):
         self.config={"channel":channel}
        
         self.relu = layers.ReLU()
-        self.upsample8 = layers.UpSampling2D(size=(8,8), interpolation='bilinear')
-        self.upsample4 = layers.UpSampling2D(size=(4,4), interpolation='bilinear')
-        self.upsample2 = layers.UpSampling2D(size=(2,2), interpolation='bilinear')
+        self.upsample8 = layers.UpSampling2D(size=(8,8))
+        self.upsample4 = layers.UpSampling2D(size=(4,4))
+        self.upsample2 = layers.UpSampling2D(size=(2,2))
         self.upsample05 = layers.AveragePooling2D(pool_size=2)
         self.dropout = layers.Dropout(0.3)
         self.cod_dec = Fix_feat_decoder(channel)
@@ -386,6 +387,8 @@ class Saliency_feat_encoder(layers.Layer):
         fix_pred = self.cod_dec(x1,x2,x3,x4)
         init_pred = self.sal_dec(x1,x2,x3,x4)
         fix = tf.identity(fix_pred)
+       
+        
         x2_2 = self.HA(1-tf.math.sigmoid(self.upsample05(fix_pred)), x2)
         x3_2, x4_2 = self.B2_res(x2_2)
         ref_pred = self.sal_dec(x1,x2_2,x3_2,x4_2)
