@@ -11,7 +11,7 @@ import tensorflow as tf
 import numpy as np
 import os, argparse
 import cv2
-import XAI_Decision_Hierarchy_onxx as xai
+import XAI_Decision_Hierarchy_torch as xai
 #import XAI_Decision_Hierarchy as xai
 from data import test_dataset
 import glob
@@ -243,7 +243,7 @@ from datetime import datetime
 
 
 if __name__ == "__main__":
-      
+    print("Face_Starting")
     # Counter
     counter = 1
     
@@ -309,6 +309,7 @@ if __name__ == "__main__":
             print()
     '''
         # Loop to iterate through dataset
+    print("Test_Starting")
     testing_dir = opt.test
     #root, dirs, files = os.walk(testing_dir)
     #for f in files:
