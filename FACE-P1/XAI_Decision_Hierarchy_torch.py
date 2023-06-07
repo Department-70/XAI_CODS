@@ -35,6 +35,11 @@ from PIL import ImageFile
 ImageFile.LOAD_TRUNCATED_IMAGES = True
 import cv2
 
+#For collecting and writing the json stats file
+stats={
+       "data": []
+       }
+
 #Turning off gpu since loading 2 models takes too much VRAM
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
@@ -299,11 +304,21 @@ def levelThree(original_image, bbox, message):
         if  detections['detection_scores'].numpy()[0][i] > 0.3:
             axis.add_patch(Rectangle((b[1]*x_size, b[0]*y_size),  (b[3]-b[1])*x_size,  (b[2]-b[0])*y_size, label="Test", fill=False, linewidth=2, color=(1,0,0)))
             axis.text(b[1]*x_size, b[0]*y_size-10,label_map[int(detections['detection_classes'].numpy()[0][i])-1] + " " + str(detections['detection_scores'].numpy()[0][i]), fontweight=400, color=(1,0,0))
-            
+    weak = []
     for box1 in bbox:
+        
         for count, box2 in enumerate(d_box):
+            feat = []
             if overlap([box1['x1'], box1['x2'], box1['y1'], box1['y2']], [box2[1]*x_size, box2[3]*x_size, box2[0]*y_size,  box2[2]*y_size]):
                 message += "Object's " +str( label_map[int(d_class[count])-1]) + "\n"
+                feat.append(str( label_map[int(d_class[count])-1]))
+        weak.append(feat)        
+        
+     
+        
+    stats["data"].append({"obj": True, "weak":weak})
+        
+        
         
     return message
 
@@ -410,6 +425,7 @@ def levelOne(filename, binary_map, all_fix_map, fix_image, original_image, messa
         # No object detected, no need to continue to lower levels
         message += "No object present. \n"
         # print("No object present.")
+        stats["data"].append({"obj": False, "weak":[]})
         output = message
     else:
         # Object detected, continue to Lvl 2
@@ -573,7 +589,8 @@ def xaiDecision_test(file_path,counter):
             add_label(segmented_image, output, (15, 15))
             segmented_image.save(file_path+'results/'+ file_name +'.jpg')
             
-        
+            with open("stats.json", "w") as outfile:
+                outfile.write(stats)
             #return message
 
 """
@@ -597,45 +614,27 @@ if __name__ == "__main__":
         print(file_name)
         original_image = cv2.imread(image_root + file_name + '.jpg')
         
-        ans = cods(image)
-        fix_image, bm_image, bm_image2  = tf.unstack(ans,num=3,axis=0)
-
+        image = image.cuda()
+        fix_pred,cod_pred1,cod_pred2 = cods.forward(image)
         
-        fix_image = tf.image.resize(fix_image, size=tf.constant([WW,HH]), method=tf.image.ResizeMethod.BILINEAR)
-        fix_image = tf.math.sigmoid(fix_image).numpy().squeeze()
-        
+        fix_image = fix_pred
+        fix_image = F.upsample(fix_image, size=[WW,HH], mode='bilinear', align_corners=False)
+        fix_image = fix_image.sigmoid().data.cpu().numpy().squeeze()
         fix_image = (fix_image - fix_image.min()) / (fix_image.max() - fix_image.min() + 1e-8)
-  
         
-        bm_image= tf.image.resize(bm_image, size=tf.constant([WW,HH]), method=tf.image.ResizeMethod.BILINEAR)
-        bm_image = tf.math.sigmoid(bm_image).numpy().squeeze()
+
+        bm_image = cod_pred1
+        bm_image = F.upsample(bm_image, size=[WW,HH], mode='bilinear', align_corners=False)
+        bm_image = bm_image.sigmoid().data.cpu().numpy().squeeze()
         bm_image = (bm_image - bm_image.min()) / (bm_image.max() - bm_image.min() + 1e-8)
         
-        bm_image2= tf.image.resize(bm_image2, size=tf.constant([WW,HH]), method=tf.image.ResizeMethod.BILINEAR)
-        bm_image2 = tf.math.sigmoid(bm_image2).numpy().squeeze()
+
+        bm_image2 = cod_pred2
+        bm_image2 = F.upsample(bm_image2, size=[WW,HH], mode='bilinear', align_corners=False)
+        bm_image2 = bm_image2.sigmoid().data.cpu().numpy().squeeze()
         bm_image2 = (bm_image2 - bm_image2.min()) / (bm_image2.max() - bm_image2.min() + 1e-8)
-       
-        # fig = plt.figure(figsize=(10, 7))
         
-        # fig.add_subplot(1, 3, 1)
-       
-        # plt.imshow(fix_image)
-        # plt.axis('off')
-        # plt.title("First")
-        # fig.add_subplot(1, 3, 2)
-        # plt.imshow(bm_image)
-        # plt.axis('off')
-        # plt.title("Second")
-        # fig.add_subplot(1, 3, 3)
-        # plt.imshow(bm_image2)
-        # plt.axis('off')
-        # plt.title("Third")
-        # plt.show()
-        
-        # if os.path.exists(fix_root + file_name + '.png'):
-        #     fix_image = Image.open(fix_root + file_name + '.png')
-        # print(file_name)
-        # print(fix_image)
+ 
         
         # Gather the images: Original, Binary Mapping, Fixation Mapping
         dim = original_image.shape
@@ -651,7 +650,7 @@ if __name__ == "__main__":
         output = levelOne(file_name, img_np, all_fix_map, weak_fix_map, original_image, message)
     
         org_image = Image.open(image_root + file_name + '.jpg')
-        segmented_image = segment_image(org_image, fix_image, color=(255, 0, 0))
+        segmented_image = segment_image(org_image, Image.fromarray(fix_image*255), color=(255, 0, 0))
         add_label(segmented_image, output, (15, 15))
         segmented_image.save('outputs/segmented_'+ file_name +'.jpg')
         
@@ -659,3 +658,6 @@ if __name__ == "__main__":
         
         if counter == 3041:
             break
+
+    with open("stats.json", "w") as outfile:
+        outfile.write(stats)
