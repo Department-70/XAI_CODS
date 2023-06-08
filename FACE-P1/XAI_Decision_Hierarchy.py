@@ -67,7 +67,7 @@ with tf.device('/CPU:0'):
 
 
 
-image_root = './dataset/train/Imgs/'
+image_root = './images/filtered_test/'
 gt_root = './dataset/train/GT/'
 fix_root = './dataset/train/Fix/'
 
@@ -652,7 +652,7 @@ if __name__ == "__main__":
         
         counter += 1
         
-        if counter == 10:
+        if counter == 1000:
             break
 
     with open("stats.json", "w") as outfile:
