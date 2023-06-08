@@ -149,6 +149,7 @@ FACE-P1/results/*
 FACE-P1/outputs/*
 FACE-P1/jsons/*
 FACE-P1/Resnet/*
+FACE-P1/images/*
 
 #Everything else I was messing with 
 80newModel

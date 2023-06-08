@@ -309,9 +309,8 @@ def levelThree(original_image, bbox, message):
             
     weak = []
     for box1 in bbox:
-        
+        feat = []
         for count, box2 in enumerate(d_box):
-            feat = []
             if overlap([box1['x1'], box1['x2'], box1['y1'], box1['y2']], [box2[1]*x_size, box2[3]*x_size, box2[0]*y_size,  box2[2]*y_size]):
                 message += "Object's " +str( label_map[int(d_class[count])-1]) + "\n"
                 feat.append(str( label_map[int(d_class[count])-1]))
@@ -476,7 +475,7 @@ def xaiDecision(file, counter):
     segmented_image = segment_image(org_image, fix_image, color=(255, 0, 0))
     add_label(segmented_image, output, (15, 15))
     segmented_image.save('outputs/segmented_'+ file_name +'.jpg')
-    plt.show()
+    #plt.show()
     
     return message
 
@@ -601,6 +600,7 @@ if __name__ == "__main__":
     test_loader = test_dataset(image_root, 480)
     for i in range(test_loader.size):
         # Filename
+        print("We are on image %s of %s"%(i,test_loader.size))
         image, HH, WW, name = test_loader.load_data()
         file_name = os.path.splitext(name)[0]
     
@@ -652,8 +652,8 @@ if __name__ == "__main__":
         
         counter += 1
         
-        if counter == 3041:
+        if counter == 10:
             break
 
     with open("stats.json", "w") as outfile:
-        outfile.write(stats)
+        json.dump(stats, outfile)
