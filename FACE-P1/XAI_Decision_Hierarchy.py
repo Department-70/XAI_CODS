@@ -65,8 +65,6 @@ with tf.device('/CPU:0'):
 #CODS_model = './models/FACE-100/'
 #cods = tf.saved_model.load(CODS_model)
 
-
-
 image_root = './images/filtered_test/'
 gt_root = './dataset/train/GT/'
 fix_root = './dataset/train/Fix/'
@@ -122,42 +120,54 @@ def add_label(image, label_text, label_position):
 """
 ===================================================================================================
     Helper function
-        - Adds the XAI message as a label onto a copy of the segmented image
+        - Segments the detected object in yellow and the weak camo regions in red
 ===================================================================================================
 """
+def get_color_based_on_rank(rank_value):
+    # Define a color mapping based on rank
+    color_mapping = {
+        1: (255, 0, 0),    # Red for rank 1
+        2: (0, 255, 0),    # Green for rank 2
+        3: (0, 0, 255),    # Blue for rank 3
+        # Add more colors for other ranks if needed
+    }
+    
+    # Assign the color based on the rank value
+    color = color_mapping.get(rank_value, (255, 255, 0))  # Default to yellow for unknown ranks
+    
+    return color
 
-def segment_image(original_image, mask_image, color=(255, 0, 0)):
-    
-    # Conver the mask to mode 1
-    # mask_image = np.where(mask_image>0.5,1,0)
+def segment_image(original_image, mask_image, rank_mask, alpha=128):
+    # Convert the mask and rank masks to mode 1
     mask_image = mask_image.convert('1')
-    # Check that the mask and image have the same size
-    if original_image.size != np.transpose(mask_image).shape:
-        print(original_image.size)
-        print(mask_image.shape)
-        raise ValueError('Image and mask must have the same size.')
-        
-    # Check that the mask has the correct mode
-    # if mask_image.mode != '1':
-    #     raise ValueError('Mask must be a binary image.')
-        
-    # Convert the mask to a numpy array
+    rank_mask = rank_mask.convert('1')
+
+    # Check that the mask, rank mask, and image have the same size
+    if original_image.size != mask_image.size or original_image.size != rank_mask.size:
+        raise ValueError('Image, mask, and rank mask must have the same size.')
+
+    # Convert the original image and masks to NumPy arrays
+    original_array = np.array(original_image)
     mask_array = np.array(mask_image, dtype=bool)
-    
+    rank_array = np.array(rank_mask, dtype=bool)
+
     # Create a copy of the original image
-    highlighted_image = np.array(original_image).copy()
-    
+    segmented_image = original_array.copy()
+
     # Apply the segmentation to the image
     indices = np.nonzero(mask_array)
-    print(indices)
-    print(highlighted_image.shape)
-    highlighted_image[indices] = color
-    
+    for idx in zip(*indices):
+        pixel_color = original_array[idx]
+        rank_value = rank_array[idx]
+        color = get_color_based_on_rank(rank_value)  # Custom function to determine color based on rank
+        highlighted_color = list(color) + [alpha]
+        new_color = tuple([int((c1 * (255 - alpha) + c2 * alpha) / 255) for c1, c2 in zip(pixel_color, highlighted_color)])
+        segmented_image[idx] = new_color
+
     # Convert the numpy array back to a PIL Image
-    highlighted_image = Image.fromarray(highlighted_image)
+    segmented_image = Image.fromarray(segmented_image)
 
-    return highlighted_image
-
+    return segmented_image
 
 """
 ===================================================================================================
@@ -277,7 +287,7 @@ def overlap(bbox1,bbox2):
 ===================================================================================================
 """
 def levelThree(original_image, bbox, message):
-
+  
     y_size, x_size, channel = original_image.shape
     
     label_map = ["leg","mouth","shadow","tail","arm","eye"]
@@ -398,7 +408,7 @@ def levelTwo(filename, original_image, all_fix_map, fixation_map, message):
     # Save plot to output folder for paper
     plt.savefig("bbox_figures/fig_"+filename)
     
-    message += "Identified " + str(index-1) + " weak camouflaged area(s).  \n"
+    message += "Identified " + str(index-1) + " weak camouflaged region(s).  \n"
     
     # Weak camouflaged area annotated image
     output = levelThree(original_image, data["weak_area_bbox"], message)
@@ -532,6 +542,7 @@ def xaiDecision_test(file_path,counter):
         cv2.imwrite(save_path_2+name, res)
         cv2.imwrite(save_path+name, res2)
         print()
+        
     for files in os.listdir(file_path):
         if os.path.isfile(os.path.join(file_path, files)):
             # Filename
@@ -631,7 +642,7 @@ if __name__ == "__main__":
         bm_image2 = (bm_image2 - bm_image2.min()) / (bm_image2.max() - bm_image2.min() + 1e-8)
         
  
-        
+  
         # Gather the images: Original, Binary Mapping, Fixation Mapping
         dim = original_image.shape
         
@@ -646,7 +657,7 @@ if __name__ == "__main__":
         output = levelOne(file_name, img_np, all_fix_map, weak_fix_map, original_image, message)
     
         org_image = Image.open(image_root + file_name + '.jpg')
-        segmented_image = segment_image(org_image, Image.fromarray(fix_image*255), color=(255, 0, 0))
+        segmented_image = segment_image(org_image, bm_image, fix_image)
         add_label(segmented_image, output, (15, 15))
         segmented_image.save('outputs/segmented_'+ file_name +'.jpg')
         
