@@ -310,7 +310,7 @@ def levelThree(original_image, bbox, message):
     
     fig, axis = plt.subplots(1, figsize=(12,6))
     axis.imshow(original_image);
-    axis.set_title('Detected features' + str(len(d_box)))
+    axis.set_title('Detected ' + str(len(d_box)) + ' feature(s)')
                 
     for i,b in enumerate(detections['detection_boxes'].numpy()[0]):
         if  detections['detection_scores'].numpy()[0][i] > 0.3:
@@ -475,10 +475,15 @@ def xaiDecision(file, counter):
     trans_img = np.transpose(bm_image)
     img_np = np.asarray(trans_img)/255
     
-    # Preprocess the Fixation Mapping
-    weak_fix_map = findAreasOfWeakCamouflage(fix_image)
-    all_fix_map = processFixationMap(fix_image)
+    # Only get the weak camouflaged areas that are present in the binary map
+    masked_fix_map = apply_mask(fix_image, img_np)
     
+    # Preprocess the Fixation Mapping
+    weak_fix_map = findAreasOfWeakCamouflage(masked_fix_map)
+    all_fix_map = processFixationMap(masked_fix_map)
+    
+    # all_fix_map is the RGB fixation map
+    # weak_fix_map is the preprocessed fixation heat map
     output = levelOne(file_name, img_np, all_fix_map, weak_fix_map, original_image, message)
 
     org_image = Image.open(image_root + file_name + '.jpg')
@@ -488,8 +493,6 @@ def xaiDecision(file, counter):
     #plt.show()
     
     return message
-
-
 
 def xaiDecision_test(file_path,counter):
     
@@ -575,9 +578,13 @@ def xaiDecision_test(file_path,counter):
             img_np = np.asarray(trans_img)/255
             
             print("preprocess")
+            # Only get the weak camouflaged areas that are present in the binary map
+            masked_fix_map = apply_mask(fix_image, img_np)
+        
             # Preprocess the Fixation Mapping
-            weak_fix_map = findAreasOfWeakCamouflage(fix_image)
-            all_fix_map = processFixationMap(fix_image)
+            weak_fix_map = findAreasOfWeakCamouflage(masked_fix_map)
+            all_fix_map = processFixationMap(masked_fix_map)
+                   
             '''
             fig.add_subplot(1, 2, 1)
             plt.imshow(weak_fix_map)
@@ -599,6 +606,33 @@ def xaiDecision_test(file_path,counter):
         
             return message
 
+        
+"""
+===================================================================================================
+    Helper Function - 
+        Retrieves the overlap areas of weak camouflage within the binary map
+===================================================================================================
+"""
+def apply_mask(heatmap, mask):
+    # print("heatmap type:", type(heatmap))
+    
+    # Convert the heatmap to a NumPy array if it's an image
+    if isinstance(heatmap, Image.Image):
+        heatmap = np.asarray(heatmap)
+        trans_heatmap = np.transpose(heatmap)
+        # print("heatmap shape:", trans_heatmap.shape)
+        
+    # Broadcast the mask to match the shape of the heatmap
+    mask_broadcasted = np.broadcast_to(mask, trans_heatmap.shape)
+    
+    # Apply the mask by multiplying the heatmap with the mask
+    masked_heatmap = mask_broadcasted * trans_heatmap
+    
+    masked_heatmap = np.transpose(masked_heatmap)
+
+    return masked_heatmap
+
+        
 """
 ===================================================================================================
     Main
@@ -650,9 +684,12 @@ if __name__ == "__main__":
         trans_img = np.transpose(np.where(bm_image>0.5,1,0))
         img_np = np.asarray(trans_img)
         
+        # Only get the weak camouflaged areas that are present in the binary map
+        masked_fix_map = apply_mask(fix_image, img_np)
+        
         # Preprocess the Fixation Mapping
-        weak_fix_map = findAreasOfWeakCamouflage(fix_image)
-        all_fix_map = processFixationMap(fix_image)
+        weak_fix_map = findAreasOfWeakCamouflage(masked_fix_map)
+        all_fix_map = processFixationMap(masked_fix_map)
         
         output = levelOne(file_name, img_np, all_fix_map, weak_fix_map, original_image, message)
     
