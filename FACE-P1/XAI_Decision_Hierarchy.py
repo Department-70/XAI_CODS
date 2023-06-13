@@ -685,7 +685,7 @@ if __name__ == "__main__":
         img_np = np.asarray(trans_img)
         
         # Only get the weak camouflaged areas that are present in the binary map
-        masked_fix_map = apply_mask(fix_image, img_np)
+        masked_fix_map = apply_mask(Image.fromarray(fix_image*255), img_np)
         
         # Preprocess the Fixation Mapping
         weak_fix_map = findAreasOfWeakCamouflage(masked_fix_map)
@@ -694,7 +694,7 @@ if __name__ == "__main__":
         output = levelOne(file_name, img_np, all_fix_map, weak_fix_map, original_image, message)
     
         org_image = Image.open(image_root + file_name + '.jpg')
-        segmented_image = segment_image(org_image, bm_image, fix_image)
+        segmented_image = segment_image(org_image, Image.fromarray(bm_image*255), Image.fromarray(fix_image*255))
         add_label(segmented_image, output, (15, 15))
         segmented_image.save('outputs/segmented_'+ file_name +'.jpg')
         
