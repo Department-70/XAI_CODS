@@ -286,27 +286,12 @@ def overlap(bbox1,bbox2):
     Lvl 3 - What part of the object breaks the camouflage concealment?
 ===================================================================================================
 """
-def levelThree(original_image, bbox, message):
+def levelThree(original_image, bbox, message,d_box,d_class,detections, class_per):
   
     y_size, x_size, channel = original_image.shape
     
-    label_map = ["leg","mouth","shadow","tail","arm","eye"]
+    label_map = ["leg:","mouth:","shadow:","tail:","arm:","eye:","body:"]
     
-    # The input needs to be a tensor, convert it using `tf.convert_to_tensor`.
-    input_tensor = tf.convert_to_tensor(original_image)
-    
-    # The model expects a batch of images, so add an axis with `tf.newaxis`.
-    input_tensor = input_tensor[tf.newaxis, ...]
-    detections = detect_fn(input_tensor)
-        
-    d_class = []
-    d_box = []
-    
-    for i,s in enumerate(detections['detection_scores'].numpy()[0]):
-        if s > 0.3:
-            d_class.append(detections['detection_classes'].numpy()[0][i])
-            d_box.append(detections['detection_boxes'].numpy()[0][i])
-            
     
     fig, axis = plt.subplots(1, figsize=(12,6))
     axis.imshow(original_image);
@@ -318,14 +303,16 @@ def levelThree(original_image, bbox, message):
             axis.text(b[1]*x_size, b[0]*y_size-10,label_map[int(detections['detection_classes'].numpy()[0][i])-1] + " " + str(detections['detection_scores'].numpy()[0][i]), fontweight=400, color=(1,0,0))
             
     weak = []
-    for box1 in bbox:
-        feat = []
-        for count, box2 in enumerate(d_box):
-            if overlap([box1['x1'], box1['x2'], box1['y1'], box1['y2']], [box2[1]*x_size, box2[3]*x_size, box2[0]*y_size,  box2[2]*y_size]):
-                message += "Object's " +str( label_map[int(d_class[count])-1]) + "\n"
-                feat.append(str( label_map[int(d_class[count])-1]))
-        weak.append(feat)        
-         
+    # for box1 in bbox:
+    #     feat = []
+    #     for count, box2 in enumerate(d_box):
+    #         if overlap([box1['x1'], box1['x2'], box1['y1'], box1['y2']], [box2[1]*x_size, box2[3]*x_size, box2[0]*y_size,  box2[2]*y_size]):
+    #             message += "Object's " +str( label_map[int(d_class[count])-1]) + "\n"
+    #             feat.append(str( label_map[int(d_class[count])-1]))
+    #     weak.append(feat)        
+    for j, clp in enumerate(class_per):
+        if clp > 0:
+           message += "Object's {} {:.2f}% \n".format(label_map[j].ljust(12),clp*100) 
     stats["data"].append({"obj": True, "weak":weak})
     return message
 
@@ -337,7 +324,7 @@ def levelThree(original_image, bbox, message):
         Output: original image & list of bounding boxes
 ===================================================================================================
 """
-def levelTwo(filename, original_image, all_fix_map, fixation_map, message):
+def levelTwo(filename, original_image, all_fix_map, fixation_map, message,d_box,d_class,detections, class_per):
     
     # Mask the red area(s) in the fixation map (weak camouflaged area(s))
     fig, axis = plt.subplots(1,2, figsize=(12,6))
@@ -411,7 +398,7 @@ def levelTwo(filename, original_image, all_fix_map, fixation_map, message):
     message += "Identified " + str(index-1) + " weak camouflaged region(s).  \n"
     
     # Weak camouflaged area annotated image
-    output = levelThree(original_image, data["weak_area_bbox"], message)
+    output = levelThree(original_image, data["weak_area_bbox"], message,d_box,d_class,detections, class_per)
     
     return output
 
@@ -423,25 +410,51 @@ def levelTwo(filename, original_image, all_fix_map, fixation_map, message):
         Output: fix_map (if a camouflaged object is detected)
 ===================================================================================================
 """
-def levelOne(filename, binary_map, all_fix_map, fix_image, original_image, message):
+def levelOne(filename, label, binary_map, org_fix_img, all_fix_map, fix_image, original_image, message,d_box,d_class,label_map,detections):
 
     # Does the numpy array contain any non-zero values?
-    all_zeros = not binary_map.any()
+    # all_zeros = not binary_map.any()
+    detection_th = .2
+    strong_th = .8
+    det_mask=org_fix_img.copy()    
+    det_mask[det_mask<detection_th] = 0
+    strong_mask = org_fix_img.copy()
+    strong_mask[strong_mask<strong_th] = 0
+    label = label/255
+    weak_percent = np.round(np.sum(label*det_mask)/np.sum(det_mask),4)
+    strong_percent = np.round(np.sum(label*strong_mask)/np.sum(strong_mask),4)
+    H, L = np.shape(org_fix_img)
+    class_percent = []
+    for cl in range(len(label_map)):
+        temp_box = []
+        for i,dcl in enumerate(d_class):
+            if dcl == cl+1:
+                temp_box.append(d_box[i])
+        
+        temp_mask = np.zeros(np.shape(org_fix_img))
+        box_test_img = np.zeros(np.shape(org_fix_img))
+        for tb in temp_box:
+            start=(int(tb[0]*L),int(tb[1]*H))
+            end = (int(tb[2]*L),int(tb[3]*H))
+            box_test_img = cv2.rectangle(temp_mask, start, end, (1,0,0), -1)
+        mask_class = label*box_test_img
+        class_percent.append(np.sum(mask_class*det_mask)/np.sum(label*det_mask))
+    class_percent.append(1-sum(class_percent))
     
-    if all_zeros:
+    if weak_percent<.5:
         # No object detected, no need to continue to lower levels
-        message += "No object present. \n"
+        message += "No object present with only {:.2f}% fixation. \n".format(weak_percent*100)
         # print("No object present.")
         stats["data"].append({"obj": False, "weak":[]})
         output = message
     else:
         # Object detected, continue to Lvl 2
-        message += "Object present. \n"
+        message += "Object present with {:.2f}% fixation. \n".format(weak_percent*100)
         # print("Object detected.")
         # print("")
-        output = levelTwo(filename, original_image, all_fix_map, fix_image, message)
+        output = levelTwo(filename, original_image, all_fix_map, fix_image, message,d_box,d_class,detections, class_percent)
         
-    return output
+    return output, weak_percent, class_percent
 
 
 """
@@ -654,7 +667,14 @@ if __name__ == "__main__":
         
         print(file_name)
         original_image = cv2.imread(image_root + file_name + '.jpg')
-        
+        dim = original_image.shape
+        if os.path.exists(gt_root + file_name + '.png'):
+            label_image = Image.open(gt_root + file_name + '.png')
+            label_image = np.asarray(label_image)
+        else:
+            label_image = np.zeros((dim[1], dim[0],3), np.uint8)
+            
+            
         image = image.cuda()
         fix_pred,cod_pred1,cod_pred2 = cods.forward(image)
         
@@ -675,7 +695,28 @@ if __name__ == "__main__":
         bm_image2 = bm_image2.sigmoid().data.cpu().numpy().squeeze()
         bm_image2 = (bm_image2 - bm_image2.min()) / (bm_image2.max() - bm_image2.min() + 1e-8)
         
- 
+        #This is the mapping of the numbers to classes for the boxes
+        label_map = ["leg","mouth","shadow","tail","arm","eye"]
+        
+        # The input needs to be a tensor, convert it using `tf.convert_to_tensor`.
+        input_tensor = tf.convert_to_tensor(original_image)
+        
+        # The model expects a batch of images, so add an axis with `tf.newaxis`.
+        input_tensor = input_tensor[tf.newaxis, ...]
+        detections = detect_fn(input_tensor)
+            
+        #d_class will be anumber from 1 to 6. Use label map to get the name
+        d_class = []
+        #d_box will be tuples for the box coordinates, but scaled betweeen 0 and 1
+        #see line 309 for a use case
+        d_box = []
+        
+        #Unpacking the model output to get the boxes
+        for i,s in enumerate(detections['detection_scores'].numpy()[0]):
+            if s > 0.3:
+                d_class.append(detections['detection_classes'].numpy()[0][i])
+                d_box.append(detections['detection_boxes'].numpy()[0][i])
+         
   
         # Gather the images: Original, Binary Mapping, Fixation Mapping
         dim = original_image.shape
@@ -685,13 +726,15 @@ if __name__ == "__main__":
         img_np = np.asarray(trans_img)
         
         # Only get the weak camouflaged areas that are present in the binary map
+        # TODO: fix_image is the fixation map and img_np in the ground truth. 
+        # Use these vars for ojbect/background analysis
         masked_fix_map = apply_mask(Image.fromarray(fix_image*255), img_np)
         
         # Preprocess the Fixation Mapping
         weak_fix_map = findAreasOfWeakCamouflage(masked_fix_map)
         all_fix_map = processFixationMap(masked_fix_map)
         
-        output = levelOne(file_name, img_np, all_fix_map, weak_fix_map, original_image, message)
+        output, weak_percent, class_percent = levelOne(file_name, label_image, img_np, fix_image, all_fix_map, weak_fix_map, original_image, message,d_box,d_class,label_map,detections)
     
         org_image = Image.open(image_root + file_name + '.jpg')
         segmented_image = segment_image(org_image, Image.fromarray(bm_image*255), Image.fromarray(fix_image*255))
