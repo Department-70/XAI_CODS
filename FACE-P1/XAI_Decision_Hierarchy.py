@@ -327,11 +327,16 @@ def levelThree(original_image, bbox, message,d_box,d_class,detections, class_per
 def levelTwo(filename, original_image, all_fix_map, fixation_map, message,d_box,d_class,detections, class_per):
     
     # Mask the red area(s) in the fixation map (weak camouflaged area(s))
+
+    
     fig, axis = plt.subplots(1,2, figsize=(12,6))
+    fig, axis = plt.subplots(1,3, figsize=(12,6))
     axis[0].imshow(original_image);
     axis[0].set_title('Original Image')
     axis[1].imshow(all_fix_map)
     axis[1].set_title('Fixation Map')
+    axis[2].imshow(fixation_map)
+    axis[2].set_title('Weak Camo Map')
     plt.tight_layout()
     
     # Save plot to output folder for paper
@@ -619,7 +624,7 @@ def xaiDecision_test(file_path,counter):
         
             return message
 
-        
+      
 """
 ===================================================================================================
     Helper Function - 
@@ -728,7 +733,7 @@ if __name__ == "__main__":
         # Only get the weak camouflaged areas that are present in the binary map
         # TODO: fix_image is the fixation map and img_np in the ground truth. 
         # Use these vars for ojbect/background analysis
-        masked_fix_map = apply_mask(Image.fromarray(fix_image*255), img_np)
+        masked_fix_map = apply_mask(Image.fromarray(fix_image), img_np)
         
         # Preprocess the Fixation Mapping
         weak_fix_map = findAreasOfWeakCamouflage(masked_fix_map)
