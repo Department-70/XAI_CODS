@@ -737,7 +737,7 @@ if __name__ == "__main__":
         
         # Preprocess the Fixation Mapping
         weak_fix_map = findAreasOfWeakCamouflage(masked_fix_map)
-        all_fix_map = processFixationMap(masked_fix_map)
+        all_fix_map = processFixationMap(fix_image)
         
         output, weak_percent, class_percent = levelOne(file_name, label_image, img_np, fix_image, all_fix_map, weak_fix_map, original_image, message,d_box,d_class,label_map,detections)
     
