@@ -437,7 +437,7 @@ def levelOne(filename, label, binary_map, org_fix_img, all_fix_map, fix_image, o
             start=(int(tb[0]*L),int(tb[1]*H))
             end = (int(tb[2]*L),int(tb[3]*H))
             box_test_img = cv2.rectangle(temp_mask, start, end, (1,0,0), -1)
-        mask_class = label*box_test_img.T
+        mask_class = label*box_test_img
         class_percent.append(np.sum(mask_class*det_mask)/np.sum(label*det_mask))
     class_percent.append(1-sum(class_percent))
     
