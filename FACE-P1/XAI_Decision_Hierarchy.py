@@ -153,9 +153,18 @@ def segment_image(original_image, mask_image, rank_mask, alpha=128):
 
     # Create a copy of the original image
     segmented_image = original_array.copy()
-
-    # Apply the segmentation to the image
+    
     indices = np.nonzero(mask_array)
+    for idx in zip(*indices):
+        pixel_color = original_array[idx]
+        rank_value = rank_array[idx]
+        color = get_color_based_on_rank(rank_value)  # Custom function to determine color based on rank
+        highlighted_color = list(color) + [alpha]
+        new_color = tuple([int((c1 * (255 - alpha) + c2 * alpha) / 255) for c1, c2 in zip(pixel_color, highlighted_color)])
+        segmented_image[idx] = new_color
+    # Apply the segmentation to the image
+    alpha = 255
+    indices = np.nonzero(rank_array)
     for idx in zip(*indices):
         pixel_color = original_array[idx]
         rank_value = rank_array[idx]
@@ -425,7 +434,17 @@ def levelOne(filename, label, binary_map, org_fix_img, all_fix_map, fix_image, o
     det_mask[det_mask<detection_th] = 0
     strong_mask = org_fix_img.copy()
     strong_mask[strong_mask<strong_th] = 0
+    
     label = label/255
+    inv_label = 1-label
+    
+    Prob_F_C = np.round(np.sum(label*binary_map.T)/np.sum(binary_map.T),4)
+    Prob_F_notC = np.round(np.sum(inv_label*binary_map.T)/np.sum(binary_map.T),4)
+    label_cov = np.round(np.sum(label)/(label.shape[0]*label.shape[1]),4)
+    inv_label_cov = 1-label_cov
+    
+    LH_ratio = (Prob_F_C/label_cov)/(Prob_F_notC/inv_label_cov)
+    
     weak_percent = np.round(np.sum(label*det_mask)/np.sum(det_mask),4)
     strong_percent = np.round(np.sum(label*strong_mask)/np.sum(strong_mask),4)
     H, L = np.shape(org_fix_img)
@@ -740,9 +759,13 @@ if __name__ == "__main__":
         all_fix_map = processFixationMap(fix_image)
         
         output, weak_percent, class_percent = levelOne(file_name, label_image, img_np, fix_image, all_fix_map, weak_fix_map, original_image, message,d_box,d_class,label_map,detections)
-    
+        
+        detection_th = .2
+        det_mask=fix_image.copy()    
+        det_mask[det_mask<detection_th] = 0
+        
         org_image = Image.open(image_root + file_name + '.jpg')
-        segmented_image = segment_image(org_image, Image.fromarray(bm_image*255), Image.fromarray(fix_image*255))
+        segmented_image = segment_image(org_image, Image.fromarray(bm_image*255), Image.fromarray(det_mask*255))
         add_label(segmented_image, output, (15, 15))
         segmented_image.save('outputs/segmented_'+ file_name +'.jpg')
         
