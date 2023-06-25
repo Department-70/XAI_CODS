@@ -2,7 +2,7 @@
 """
 Created on Mon Mar 27 13:10:39 2023
 
-@author: Debra Hogue
+@author: Debra Hogue, Timmy Sharp, & Joe Karch
 
 Description: Decision Hierarchy for CODS XAI
              Lvl 1 - Binary mask evaluation  - Is anything present?
