@@ -465,7 +465,7 @@ def levelOne(filename, label, binary_map, org_fix_img, all_fix_map, fix_image, o
         class_percent.append(np.sum(mask_class*det_mask)/np.sum(label*det_mask))
     class_percent.append(1-sum(class_percent))
     
-    if weak_percent<.5:
+    if weak_percent<=.05:
         # No object detected, no need to continue to lower levels
         message += "No object present with only {:.2f}% fixation. \n".format(weak_percent*100)
         # print("No object present.")
