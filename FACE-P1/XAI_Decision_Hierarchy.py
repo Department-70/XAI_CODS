@@ -435,6 +435,7 @@ def levelOne(filename, label, binary_map, org_fix_img, all_fix_map, fix_image, o
     strong_mask = org_fix_img.copy()
     strong_mask[strong_mask<strong_th] = 0
     
+    # Testing Liklihood Ratio Method
     label = label/255
     inv_label = 1-label
     
@@ -445,8 +446,32 @@ def levelOne(filename, label, binary_map, org_fix_img, all_fix_map, fix_image, o
     
     LH_ratio = (Prob_F_C/label_cov)/(Prob_F_notC/inv_label_cov)
     
+    # Testing Jaccard's Index values
+    TP = np.sum(label*binary_map.T)
+    FP = np.sum(binary_map.T) - TP
+    FN = np.sum(label)-TP
+    
+    Jaccard = TP/(TP+FN+FP)
+    Jaccard_half = TP/(TP+.5*FN+FP)    
+    Jaccard_noFN = TP/(TP+FP)  
+    
+    # Testing Dice Coefficient
+    Dice = 2*TP/(2*TP+FN+FP)
+    
     weak_percent = np.round(np.sum(label*det_mask)/np.sum(det_mask),4)
     strong_percent = np.round(np.sum(label*strong_mask)/np.sum(strong_mask),4)
+    
+    metric_image = np.zeros((np.shape(label)[0],np.shape(label)[1],3))
+    metric_image[:,:, 0] = binary_map.T*120
+    metric_image[:,:, 2] = label*120    
+    metric_message = "Weak Percent: {:.2f}% \nLiklihood:         {:.4f} \nJaccard:           {:.4f} \nJaccard1/2:      {:.4f}\nJaccard noFN:  {:.4f}\nDice:                {:.4f} \n".format(weak_percent*100, LH_ratio, Jaccard, Jaccard_half, Jaccard_noFN,Dice)
+    metric_image = metric_image.astype(np.uint8)
+    metric_image = Image.fromarray(metric_image)
+    add_label(metric_image, metric_message, (15, 15))
+    metric_image.save('metric_image/metric_'+ filename +'.jpg')
+    
+    
+
     H, L = np.shape(org_fix_img)
     class_percent = []
     for cl in range(len(label_map)):
