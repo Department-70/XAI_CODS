@@ -299,7 +299,7 @@ def levelThree(original_image, bbox, message,d_box,d_class,detections, class_per
   
     y_size, x_size, channel = original_image.shape
     
-    label_map = ["leg:","mouth:","shadow:","tail:","arm:","eye:","body:"]
+    label_map = ["leg:","mouth:","shadow:","tail:","arm:","eye:","body:","background:"]
     
     
     fig, axis = plt.subplots(1, figsize=(12,6))
@@ -321,8 +321,8 @@ def levelThree(original_image, bbox, message,d_box,d_class,detections, class_per
     #     weak.append(feat)        
     for j, clp in enumerate(class_per):
         if clp > 0:
-           message += "Object's {} {:.2f}% \n".format(label_map[j].ljust(12),clp*100) 
-    stats["data"].append({"obj": True, "weak":weak})
+           message += "Object's {} {:.2f}% \n".format(label_map[j].ljust(18),clp*100) 
+    # stats["data"].append({"obj": True, "weak":weak})
     return message
 
 
@@ -452,7 +452,8 @@ def levelOne(filename, label, binary_map, org_fix_img, all_fix_map, fix_image, o
     FN = np.sum(label)-TP
     
     Jaccard = TP/(TP+FN+FP)
-    Jaccard_half = TP/(TP+.5*FN+FP)    
+    Jaccard_half = TP/(TP+.5*FN+FP)  
+    Jaccard_qtr = TP/(TP+.25*FN+FP)
     Jaccard_noFN = TP/(TP+FP)  
     
     # Testing Dice Coefficient
@@ -474,6 +475,7 @@ def levelOne(filename, label, binary_map, org_fix_img, all_fix_map, fix_image, o
 
     H, L = np.shape(org_fix_img)
     class_percent = []
+    body_percent =np.sum(label*det_mask)
     for cl in range(len(label_map)):
         temp_box = []
         for i,dcl in enumerate(d_class):
@@ -487,14 +489,19 @@ def levelOne(filename, label, binary_map, org_fix_img, all_fix_map, fix_image, o
             end = (int(tb[3]*L),int(tb[2]*H))
             box_test_img = cv2.rectangle(temp_mask, start, end, (1,0,0), -1)
         mask_class = label*box_test_img
-        class_percent.append(np.sum(mask_class*det_mask)/np.sum(label*det_mask))
+        body_percent = body_percent-np.sum(mask_class*det_mask)
+        # class_percent.append(np.sum(mask_class*det_mask)/((np.sum(label*det_mask))))
+        class_percent.append(np.sum(box_test_img*det_mask)/((np.sum(det_mask))))
+    class_percent.append(body_percent/(np.sum(det_mask)))
     class_percent.append(1-sum(class_percent))
     
-    if weak_percent<=.05:
+
+
+    if Jaccard_qtr<=.2:
         # No object detected, no need to continue to lower levels
         message += "No object present with only {:.2f}% fixation. \n".format(weak_percent*100)
         # print("No object present.")
-        stats["data"].append({"obj": False, "weak":[]})
+        stats["data"].append({"file": filename,"obj": False, "weak":weak_percent, "jaccard":Jaccard_qtr, "class":class_percent})
         output = message
     else:
         # Object detected, continue to Lvl 2
@@ -502,7 +509,7 @@ def levelOne(filename, label, binary_map, org_fix_img, all_fix_map, fix_image, o
         # print("Object detected.")
         # print("")
         output = levelTwo(filename, original_image, all_fix_map, fix_image, message,d_box,d_class,detections, class_percent)
-        
+        stats["data"].append({"file": filename,"obj": True, "weak":weak_percent, "jaccard":Jaccard_qtr, "class":class_percent})
     return output, weak_percent, class_percent
 
 
@@ -793,11 +800,13 @@ if __name__ == "__main__":
         segmented_image = segment_image(org_image, Image.fromarray(bm_image*255), Image.fromarray(det_mask*255))
         add_label(segmented_image, output, (15, 15))
         segmented_image.save('outputs/segmented_'+ file_name +'.jpg')
-        
+        if counter ==380:
+            with open("stats_metric.json", "w") as outfile:
+                json.dump(stats, outfile)
         counter += 1
-        
+            
         if counter == 1000:
             break
 
-    with open("stats.json", "w") as outfile:
+    with open("stats_metric.json", "w") as outfile:
         json.dump(stats, outfile)
