@@ -108,7 +108,7 @@ def add_label(image, label_text, label_position):
     draw = ImageDraw.Draw(image)
 
     # Define the font and font size
-    font = ImageFont.truetype('arial.ttf', 20)
+    font = ImageFont.truetype('consola.ttf', 20)
 
      # Draw the label on the image
     draw.text(label_position, label_text, fill='white', font=font, stroke_width=2, stroke_fill='black')
@@ -163,15 +163,15 @@ def segment_image(original_image, mask_image, rank_mask, alpha=128):
         new_color = tuple([int((c1 * (255 - alpha) + c2 * alpha) / 255) for c1, c2 in zip(pixel_color, highlighted_color)])
         segmented_image[idx] = new_color
     # Apply the segmentation to the image
-    alpha = 255
-    indices = np.nonzero(rank_array)
-    for idx in zip(*indices):
-        pixel_color = original_array[idx]
-        rank_value = rank_array[idx]
-        color = get_color_based_on_rank(rank_value)  # Custom function to determine color based on rank
-        highlighted_color = list(color) + [alpha]
-        new_color = tuple([int((c1 * (255 - alpha) + c2 * alpha) / 255) for c1, c2 in zip(pixel_color, highlighted_color)])
-        segmented_image[idx] = new_color
+    # alpha = 255
+    # indices = np.nonzero(rank_array)
+    # for idx in zip(*indices):
+    #     pixel_color = original_array[idx]
+    #     rank_value = rank_array[idx]
+    #     color = get_color_based_on_rank(rank_value)  # Custom function to determine color based on rank
+    #     highlighted_color = list(color) + [alpha]
+    #     new_color = tuple([int((c1 * (255 - alpha) + c2 * alpha) / 255) for c1, c2 in zip(pixel_color, highlighted_color)])
+    #     segmented_image[idx] = new_color
 
     # Convert the numpy array back to a PIL Image
     segmented_image = Image.fromarray(segmented_image)
@@ -299,7 +299,7 @@ def levelThree(original_image, bbox, message,d_box,d_class,detections, class_per
   
     y_size, x_size, channel = original_image.shape
     
-    label_map = ["leg:","mouth:","shadow:","tail:","arm:","eye:","body:","background:"]
+    label_map = ["leg:       ","mouth:     ","shadow:    ","tail:      ","arm:       ","eye:       ","body:      ","background:"]
     
     
     fig, axis = plt.subplots(1, figsize=(12,6))
@@ -321,7 +321,7 @@ def levelThree(original_image, bbox, message,d_box,d_class,detections, class_per
     #     weak.append(feat)        
     for j, clp in enumerate(class_per):
         if clp > 0:
-           message += "Object's {} {:.2f}% \n".format(label_map[j].ljust(18),clp*100) 
+           message += "Object's {} {:>6.2%} \n".format(label_map[j],clp) 
     # stats["data"].append({"obj": True, "weak":weak})
     return message
 
@@ -490,10 +490,12 @@ def levelOne(filename, label, binary_map, org_fix_img, all_fix_map, fix_image, o
             box_test_img = cv2.rectangle(temp_mask, start, end, (1,0,0), -1)
         mask_class = label*box_test_img
         body_percent = body_percent-np.sum(mask_class*det_mask)
-        # class_percent.append(np.sum(mask_class*det_mask)/((np.sum(label*det_mask))))
-        class_percent.append(np.sum(box_test_img*det_mask)/((np.sum(det_mask))))
-    class_percent.append(body_percent/(np.sum(det_mask)))
+        class_percent.append(np.sum(mask_class*det_mask)/((np.sum(det_mask))))
+        # class_percent.append(np.sum(box_test_img*det_mask)/((np.sum(det_mask))))
+    # class_percent.append(body_percent/(np.sum(det_mask)))
+    class_percent.append(weak_percent-sum(class_percent))
     class_percent.append(1-sum(class_percent))
+    # weak_percent = sum(class_percent[:-1])
     
 
 
